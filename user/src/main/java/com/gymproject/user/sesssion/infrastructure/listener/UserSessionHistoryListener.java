@@ -25,36 +25,36 @@ public class UserSessionHistoryListener {
         // 엔티티가 이미 '사용' 혹은 '복구' 된 상태이므로 session.getUSedSession() 은 최신값임
         UserSessionHistory history =
                 switch(event.getType()){
-                    case SessionChangeType.USE -> UserSessionHistory.recordUse(
+                    case USE -> UserSessionHistory.recordUse(
                             session,
                             event.getType().getDescription(),
                             session.getSessionType(),
                             event.getModifier()
                     );
-                    case SessionChangeType.PURCHASE -> UserSessionHistory.recordPurchase(
+                    case PURCHASE -> UserSessionHistory.recordPurchase(
                             session,
                             event.getType().getDescription(),
                             session.getSessionType(),
                             event.getModifier()
                     );
-                    case SessionChangeType.RESTORE -> UserSessionHistory.recordRestore(
+                    case RESTORE -> UserSessionHistory.recordRestore(
                             session,
                             event.getType().getDescription(),
                             session.getSessionType(),
                             event.getModifier()
                     );
-                    case SessionChangeType.REFUNDED ->  UserSessionHistory.recordRefund(
+                    case REFUNDED ->  UserSessionHistory.recordRefund(
                             session,
                             event.getAmount(),
                             event.getType().getDescription(),
                             session.getSessionType(),
                             event.getModifier()
                     );
-                    case SessionChangeType.DEACTIVATED ->   UserSessionHistory.recordDeactivate(
+                    case DEACTIVATED ->   UserSessionHistory.recordDeactivate(
                             session,
                             event.getModifier()
                     );
-                    case SessionChangeType.EXPIRED -> UserSessionHistory.recordExpire(
+                    case EXPIRED -> UserSessionHistory.recordExpire(
                             session,
                             event.getModifier(),
                             event.getAmount()

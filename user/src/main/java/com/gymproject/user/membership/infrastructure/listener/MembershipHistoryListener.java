@@ -23,37 +23,37 @@ public class MembershipHistoryListener {
 
         UserMembershipHistory history =
                 switch (event.getType()) {
-                    case MembershipChangeType.PURCHASE -> UserMembershipHistory.recordPurchase(
+                    case PURCHASE -> UserMembershipHistory.recordPurchase(
                             event.getUserMembership(),
                             event.getModifier()
                     );
 
-                    case MembershipChangeType.EXTEND ->  UserMembershipHistory.recordExtend(
+                    case EXTEND ->  UserMembershipHistory.recordExtend(
                             event.getUserMembership(),
                             event.getBeforeExpiredDate(),
                             event.getModifier()
                     );
-                    case MembershipChangeType.ROLLBACK ->  UserMembershipHistory.recordRollback(
+                    case ROLLBACK ->  UserMembershipHistory.recordRollback(
                             event.getUserMembership(),
                             event.getBeforeExpiredDate(),
                             event.getModifier()
                     );
-                    case MembershipChangeType.EXPIRED -> UserMembershipHistory.recordExpire(
+                    case EXPIRED -> UserMembershipHistory.recordExpire(
                             event.getUserMembership(),
                             event.getModifier()
                     );
-                    case MembershipChangeType.SUSPEND ->   UserMembershipHistory.recordSuspend(
+                    case SUSPEND ->   UserMembershipHistory.recordSuspend(
                             event.getUserMembership(),
                             event.getModifier(),
                             event.getDescription()
                     );
-                    case MembershipChangeType.RESUME ->    UserMembershipHistory.recordResume(
+                    case RESUME ->    UserMembershipHistory.recordResume(
                             event.getUserMembership(),
                             event.getBeforeExpiredDate(),
                             event.getAmountDays(),
                             event.getModifier()
                     );
-                    case MembershipChangeType.CANCELLED -> UserMembershipHistory.recordCancel(
+                    case CANCELLED -> UserMembershipHistory.recordCancel(
                             event.getUserMembership(),
                             event.getBeforeExpiredDate(),
                             event.getModifier()
