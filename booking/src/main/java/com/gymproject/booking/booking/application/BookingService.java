@@ -159,7 +159,7 @@ public class BookingService {
                 .toList();
 
         return CurriculumBookingResponse.create(
-                scheduleInfos.getFirst().title(),
+                scheduleInfos.get(0).title(),
                 bookings.size(),
                 details
         );

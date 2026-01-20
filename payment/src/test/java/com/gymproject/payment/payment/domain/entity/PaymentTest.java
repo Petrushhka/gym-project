@@ -66,7 +66,7 @@ class PaymentTest {
             // [중요] AbstractAggregateRoot를 통해 이벤트가 등록되었는지 확인
             List<Object> events = DomainEventsTestUtils.getEvents(payment);
             assertThat(events).hasSize(1);
-            assertThat(events.getFirst()).isInstanceOf(PaymentChangedEvent.class);
+            assertThat(events.get(0)).isInstanceOf(PaymentChangedEvent.class);
         }
 
         @Test

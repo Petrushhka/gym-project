@@ -61,7 +61,7 @@ public class PaymentService {
 
         // 2. 기존 결제가 잇다면, 새 결제창을 만들지 않고 기존 URL 반환
         if (!pendingPayment.isEmpty()) {
-            Payment existing = pendingPayment.getFirst();
+            Payment existing = pendingPayment.get(0);
             if (existing.getCheckoutUrl() != null) {
                 return existing.getCheckoutUrl();
             }

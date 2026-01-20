@@ -1,5 +1,5 @@
 # 빌드 단계(gradle)
-FROM gradle:jdk-17-alpine as builder
+FROM gradle:jdk-17-alpine AS  builder
 WORKDIR /build
 
 # 의존성 캐싱을 위해 설정파일만 먼저 복사
