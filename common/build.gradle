@@ -1,0 +1,73 @@
+plugins {
+    id 'java'
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    compileOnly 'org.springframework.modulith:spring-modulith-api'
+//    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation "com.fasterxml.jackson.core:jackson-databind" // ObjectMapper
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310") // String -> OffsetDateTime으로 변경
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0' // @Operation
+
+
+}
+test{
+    useJUnitPlatform()
+}
+/*
+
+
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.5.6'
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+
+common이 Spring Boot를 플러그인으로 포함하고 있다 → 모듈 분리의 의미가 무너짐
+common이 Spring context에 종속되면 auth / user / booking 등이 common에 종속되어 전체 의존성 그래프가 무거워짐
+common은 framework-independent 해야 함
+
+dependencies {
+    implementation 'org.springframework.modulith:spring-modulith-starter-core'
+    implementation 'org.springframework.boot:spring-boot-starter'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+}
+
+절대 넣으면 안 되는 것들
+	•	spring-boot-starter
+	•	spring-boot-starter-web
+	•	spring-boot-starter-data-jpa
+	•	spring-boot 플러그인
+	•	spring context 의존성
+
+common 은 어디에도 의존하면 안 되는 완전한 독립 모듈이어야 함.
+
+🔥 왜 이렇게 해야 하냐?
+
+1) common을 import하는 모든 모듈이 Spring Boot 의존성을 따라오면 안 됨
+
+→ api, user, payment, auth 등 모든 모듈 구조가 무거워짐
+
+2) common은 외부 프레임워크 독립성을 가져야 함
+
+→ 그래야 user, auth, booking 등 다른 모듈이 자유롭게 조립됨
+
+3) modulith 구조 유지 위해서는 의존성 최소화가 핵심
+
+→ 공통 DTO나 인터페이스는 framework-free 해야 한다
+
+
+🧩 그럼 Spring 검증 어노테이션은 어떻게 쓸까?
+
+common DTO에서 @NotNull, @Email 등 사용하고 싶다면
+SpringBoot 의존성 말고 Jakarta Validation API 만 쓰면 됨.
+implementation 'jakarta.validation:jakarta.validation-api:3.0.2'
+이거면 충분해.
+
+
+Spring Boot는 presenter (api 모듈)에서 구현체를 제공하고,
+common은 인터페이스나 DTO의 어노테이션만 들고 있으면 돼.
+ */

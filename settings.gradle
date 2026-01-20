@@ -1,0 +1,3 @@
+rootProject.name = 'gym'
+
+include 'support', 'api', 'common', 'user', 'payment', 'booking', 'readmodel', 'classmanagement', 'auth'

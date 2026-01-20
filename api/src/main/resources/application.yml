@@ -1,0 +1,123 @@
+spring:
+  security:
+    oauth2:
+      client:
+        registration: # Srping Security에 google login 지원해달라는 설정
+          google:
+            client-id: ${CLIENT_ID}
+            client-secret: ${CLIENT_SECRET}
+            redirect-uri: "http://localhost:8080/login/oauth2/code/google" # 구글에서 이쪽으로 정보를 전달해준다 약속임
+            scope:
+              - profile
+              - email
+            provider: google
+
+          google-link:
+            client-id: ${CLIENT_ID}
+            client-secret: ${CLIENT_SECRET}
+            redirect-uri: "http://localhost:8080/api/v1/auth/social-links/google/callback" # Srping Security에서 자동으로 이쪽으로 리다이렉트 시킴
+            scope:
+              - profile
+              - email
+            provider: google
+
+        provider:
+          google:
+            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
+            token-uri: https://oauth2.googleapis.com/token
+            user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
+            user-name-attribute: sub
+
+  application:
+    name: gym
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/testdb?stringtype=unspecified # ?stringtype=unspecified << jsonb 파싱 에러때문에 넣어야함.
+    username: postgres
+    password: ${DB_PASSWORD}
+
+  data:
+    redis:
+      port: 6379
+      host: localhost
+
+  jpa:
+    hibernate:
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+      ddl-auto: none # flyway는 Single source of Truth인데 하이버네이트가 스키마를 건들면 충돌이 일어남. 꺼놔야함.
+    database: postgresql
+#    database-platform: org.hibernate.dialect.PostgreSQLDialect
+#    database-platform: io.hypersistence.utils.hibernate.dialect.PostgreSQLDialect # Range<OffsetDateTime> 매핑을 위해, 서드파티용 라이브러리로 방언설정
+    properties:
+      hibernate.jdbc.time_zone: UTC
+      hibernate.globally_quoted_identifiers: true
+      hibernate.id.optimizer.pooled.preferred: none # hibernate의 시퀀스가 1씩 증가(allocationSize = 1로 동작) 원래는 50으로 동작
+    show-sql: true # 콘솔에 SQL 출력
+  #      hibernate.type_contributor: io.hypersistence.utils.hibernate.type.util.HibernateTypeContributor
+  # https://velog.io/@yangwon-park/Flyway-%EC%A0%81%EC%9A%A9%EA%B8%B0
+#  flyway: # Single Source of Truth
+#    baseline-on-migrate: true #flyway_schema_history
+#    enabled: true
+#    baseline-version: 1
+#    validate-migration-naming: true
+  #    user: postgres
+#    password: ${DB_PASSWORD}
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${EMAIL_ID}
+    password: ${EMAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+    auth-code-expiration-millis: 1800000
+
+jwt:
+  access-secret: ${JWT_ACCESS_SECRET}
+  refresh-secret: ${JWT_REFRESH_SECRET}
+  expiration-hours: 3
+  issuer: gym
+  refresh-expiration-hours: 168 # 7일
+
+app:
+  oauth:
+    success-redirect-uri: http://localhost:3000/auth/callback
+    signup-redirect-uri: http://localhost:3000/signup
+    failure-redirect-uri: http://localhost:3000/login
+
+logging:
+  level:
+    org:
+      hibernate:
+        SQL: DEBUG # sql에서 ?에 어떤값이 들어가는지 보려고 설정
+        type:
+          descriptor.sql.BasicBinder: TRACE
+        orm:
+          model:
+            mapping: TRACE
+# openApi 문서 활성화
+springdoc:
+  api-docs:
+    enabled: true
+# UI 활성화
+  swagger-ui:
+    enabled: true
+# 기본 접속 경로 지정
+    path: /swagger-ui.html
+    tags-sorter: alpha # 태그를 알파벳/숫자 순으로 정렬
+#    operations-sorter: alpha
+  # 일반화된 응답 사용 여부 결정
+  override-with-generic-response: false
+
+#Stripe
+stripe:
+  api-secret-key: ${STRIPE_SECRET_KEY}
+  webhook-signing-secret-key: ${STRIPE_WEBHOOK_KEY}

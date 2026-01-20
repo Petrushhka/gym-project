@@ -1,0 +1,23 @@
+plugins {
+    id 'java'
+    id 'io.spring.dependency-management'
+}
+
+dependencies {
+    implementation project(':common')
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.modulith:spring-modulith-starter-core'
+//    implementation 'org.springframework.modulith:spring-modulith-starter-jpa'
+    implementation 'org.springframework.modulith:spring-modulith-events-api'
+
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok' // 생성자 자동 주입을 못해서 추가
+
+    implementation 'io.hypersistence:hypersistence-utils-hibernate-63:3.9.0' // postgre 데이터타입(tstzrange), Range<ZonedDateTime>을 알아서 바꿔줌
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0' // @Operation
+
+}
+test {
+    useJUnitPlatform() // Gradle에게 JUnit 5f를 사용하라고 알려주는 블록임(없어서 테스트를 못햇음)
+}

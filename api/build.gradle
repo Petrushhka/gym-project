@@ -1,0 +1,70 @@
+plugins {
+    id 'org.springframework.boot'
+}
+
+dependencies {
+    // === Internal Modules ===
+    implementation project(':common')
+    implementation project(':payment')
+    implementation project(':booking')
+    implementation project(':user')
+    implementation project(':classmanagement')
+    implementation project(':readmodel')
+    implementation project(':support')
+    implementation project(':auth') // 모듈 분리
+
+    // === Swagger ===
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0'
+
+    // === Spring Boot Starters ===
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
+    // === DB & Migration ===
+    // Postgre와 Hibernate 매핑을 위해.. tstzragne
+    //  DevTools가 이 라이브러리를 Restart ClassLoader에서 제외하도록 설정
+    developmentOnly 'io.hypersistence:hypersistence-utils-hibernate-63:3.9.0'
+//    implementation 'io.hypersistence:hypersistence-utils-hibernate-63:3.9.0' // postgre 데이터타입(tstzrange)
+
+    //flyway 사용 -- 사용안함
+//    implementation 'org.flywaydb:flyway-core'
+//    implementation 'org.flywaydb:flyway-database-postgresql'
+    runtimeOnly 'org.postgresql:postgresql'
+
+    // === Modulith ===
+    implementation 'org.springframework.modulith:spring-modulith-starter-core'
+//    implementation 'org.springframework.modulith:spring-modulith-starter-jpa'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+    // === Dev & Test ===
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    testImplementation 'org.testcontainers:postgresql' // tstzragne와 같은 Postgre 환경에 맞는 테스트 컨테이너 (Spring boot랑 postgre는 해당 환경으로 테스트하는게 적합)
+    testImplementation 'org.testcontainers:junit-jupiter'
+    testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testImplementation "org.springframework.modulith:spring-modulith-starter-test"
+    testImplementation 'org.springframework.security:spring-security-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-oauth2-client' // test를 위해서 의존성추가
+
+
+    // ====== Security
+    implementation 'org.springframework.boot:spring-boot-starter-security' // 비밀번호 암호화
+
+
+}
+
+repositories {
+    mavenCentral()
+    }
+
+test {
+    useJUnitPlatform()
+    doFirst {
+        println "Test Classpath: " + classpath.asPath
+    }
+}
+

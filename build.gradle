@@ -1,0 +1,61 @@
+plugins {
+    id 'java' // 자바 프로젝트 기본 플러그인(컴파일/테스트/패키징 작업 제공)
+    id 'org.springframework.boot' version '3.5.6' apply false // apply false 적용
+    id 'io.spring.dependency-management' version '1.1.7' // Maven BOM을 Gradle에서 쓰게 해주는 플러그인
+}
+
+// 루트설정에서 기본값으로 가능
+group = 'com.gymproject' // 아티팩트 좌표
+version = '0.0.1-SNAPSHOT'// 아티팩트 버전
+description = 'gym' // 아티팩트 설명
+
+// JDK 툴체인 버전 고정. CI/로컬 상이해도 Gradle이 맞는 JDK로 빌드.
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+// annotationProcessor(롬복같은것들)을 compileOnly에 포함시켜 컴파일 시 인식되게 함.
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+// 의존성 가져올 저장소
+repositories {
+    mavenCentral()
+}
+
+// 전역 변수처럼 쓰는 extra property. 아래 %{springModulithVersion}로 참조.
+ext {
+    set('springModulithVersion', "1.4.3") // 최신 버전의 spring modulith
+    set('springBootVersion', "3.5.6") // bom에 쓸 값을 따로 선언
+}
+
+// 모든 서브모듈에 공통 규칙 적용
+// dependency-management로 Modulith BOM을 불러서 modulith 관련 버전 정합 통일
+// 공종 테스트 의존성(JUnit, Boot test, Moduilth test) 부여
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'io.spring.dependency-management'
+
+    repositories {
+        mavenCentral()
+    }
+
+    dependencyManagement {
+        imports {
+            mavenBom "org.springframework.boot:spring-boot-dependencies:${springBootVersion}" // Boot Plugin 적용 false하고 해당 bom 임포트
+            mavenBom "org.springframework.modulith:spring-modulith-bom:${springModulithVersion}"
+        }
+    }
+
+    dependencies {
+
+        testImplementation 'org.springframework.modulith:spring-modulith-starter-test'
+        testImplementation 'org.springframework.boot:spring-boot-starter-test'
+        testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    }
+}

@@ -1,0 +1,54 @@
+# 테스트를 위한 전용 설정 파일
+
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          google-login:
+            provider: google # spring boot가 자동으로 provider 정보를 제공하지않음(실제 실행환경은 알아서 템플릿 자동포함, 테스트환경은 아님)
+            client-id: 'fake-client-id'
+            client-secret: 'fake-client-secret'
+
+          google-link:
+            provider: google # spring boot가 자동으로 provider 정보를 제공하지않음(실제 실행환경은 알아서 템플릿 자동포함, 테스트환경은 아님)
+            client-id: 'fake-client-id'
+            client-secret: 'fake-client-secret'
+
+        provider:
+          google:
+            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
+            token-uri: http://localhost:9001/token # WireMock에 요청
+            user-info-uri: http://localhost:9001/userinfo
+            user-name-attribute: sub
+
+  # DB를 postgre container로 사용(h2 사용못함 타입,제약조건 너무 다름)
+  datasource:
+    url: jdbc:tc:postgresql:15:///testdb
+    username: user
+    password: pass
+    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop # 테스트 시작 시 "테이블 자동 생성", 끝나면 "자동 삭제"
+    properties:
+      hibernate.dialect: org.hibernate.dialect.PostgreSQLDialect #  방언을 postgre로 변경
+    defer-datasource-initialization: true
+
+  #flyway는 테스트 중에 중단
+  flyway:
+    enabled: false
+
+jwt:
+#  secret-key: 'test-secret-key-1234567890-1234567890-1234567890-1234567890' # 테스트용 비밀키
+  secret-key: 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$' # 너무 짧으면 암호화 불가능 에러뱉음
+  expiration-hours: 1
+  issuer: test-issuer
+
+app:
+  oauth:
+    success-redirect-uri: http://test.com/success
+    signup-redirect-uri: http://test.com/signup
+    failure-redirect-uri: http://test.com/fail
+
