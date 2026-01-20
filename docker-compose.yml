@@ -37,6 +37,7 @@ services:
       # [중요] 컨테이너가 꺼져도 데이터가 사라지지 않게 서버 폴더와 연결
       - ./pg_data:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
       - gym-net
 
   # 3. Redis 캐시

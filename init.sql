@@ -62,7 +62,6 @@ CREATE TABLE public."USER_TB" (
 
 CREATE TABLE public."USER_TB" (
                                   user_id int8 NOT NULL, -- Auto Increment가 없음
-    ...
                                   CONSTRAINT "PK_USER_TB" PRIMARY KEY (user_id)
     );
 
