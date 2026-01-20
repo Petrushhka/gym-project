@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  # 1. 스프링 부트 애플리케이션
+  app:
+    container_name: gym-app
+    build: .
+    ports:
+      - "8080:8080" # 외부:내부 포트
+    environment:
+      # application-prod.yml에서 사용하는 변수들을 여기에 주입
+      - SERVER_IP=${SERVER_IP} # .env 파일에서 읽어옴
+      - DB_PASSWORD=${DB_PASSWORD}
+      - CLIENT_ID=${CLIENT_ID}
+      - CLIENT_SECRET=${CLIENT_SECRET}
+      - EMAIL_ID=${EMAIL_ID}
+      - EMAIL_PASSWORD=${EMAIL_PASSWORD}
+      - JWT_ACCESS_SECRET=${JWT_ACCESS_SECRET}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - STRIPE_WEBHOOK_KEY=${STRIPE_WEBHOOK_KEY}
+    depends_on:
+      - postgres-db
+      - redis-cache
+    networks:
+      - gym-net
+
+  # 2. PostgreSQL 데이터베이스
+  postgres-db:
+    image: postgres:15-alpine
+    container_name: gym-postgres
+    environment:
+      POSTGRES_DB: gymdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      # [중요] 컨테이너가 꺼져도 데이터가 사라지지 않게 서버 폴더와 연결
+      - ./pg_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - gym-net
+
+  # 3. Redis 캐시
+  redis-cache:
+    image: redis:alpine
+    container_name: gym-redis
+    networks:
+      - gym-net
+
+networks:
+  gym-net:
+    driver: bridge

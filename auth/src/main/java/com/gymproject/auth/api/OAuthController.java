@@ -14,10 +14,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
 @Tag(name = "3. 소셜 계정 연동", description = "기존 일반회원 가입자 소셜 계정 연동")
 @RequiredArgsConstructor
 @Validated
@@ -37,7 +38,7 @@ public class OAuthController {
             3. 서버에서 코드를 이용하여 소셜 정보를 가져와 사용자의 계정과 연결
             
             """)
-    @GetMapping("/{provider}/callback")
+    @PostMapping("/{provider}/callback")
     public ResponseEntity<CommonResDto<OAuthLinkResponse>> connectSocial(
             @RequestBody @Valid OAuthLinkRequest request,
             @AuthenticationPrincipal UserAuthInfo userInfo) {

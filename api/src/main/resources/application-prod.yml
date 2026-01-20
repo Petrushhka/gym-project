@@ -1,0 +1,54 @@
+spring:
+  config:
+    activate:
+      on-profile: prod # prod 프로파일일 때만 동작
+
+  # 데이터 베이스 설정
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    # 'postgres-db'는 docker-compose에서 정할 서비스 이름
+    url: jdbc:postgresql://postgres-db:5432/gymdb?stringtype=unspecified
+    username: postgres
+    password: ${DB_PASSWORD}
+
+    # 2. Redis 설정
+  data:
+    redis:
+      host: redis-cache #docker-compose 서비스 이름
+      port: 6379
+
+  # 3. OAuth2 설정 (리다이렉트 주소 변경 필수)
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${CLIENT_ID}
+            client-secret: ${CLIENT_SECRET}
+            # [중요] localhost -> 실제 서버 IP 또는 도메인으로 변경해야 구글이 승인해줌
+            redirect-uri: "http://${SERVER_IP}:8080/login/oauth2/code/google"
+            scope:
+              - profile
+              - email
+
+          # 소셜 연동용
+          google-link:
+            client-id: ${CLIENT_ID}
+            client-secret: ${CLIENT_SECRET}
+            redirect-uri: "http://${SERVER_IP}:8080/api/v1/auth/social-links/google/callback"
+            scope:
+              - profile
+              - email
+  jpa:
+    hibernate:
+      ddl-auto: none
+
+# 4. 프론트엔드 리다이렉트 (스웨거/프론트 주소)
+app:
+  oauth:
+    # 프론트가 없다면 일단 스웨거 주소나, 임시로 서버 IP로 설정
+    success-redirect-uri: http://${SERVER_IP}:8080/swagger-ui/index.html
+    signup-redirect-uri: http://${SERVER_IP}:8080/swagger-ui/index.html
+    failure-redirect-uri: http://${SERVER_IP}:8080/login?error
+  payment:
+    base-url: http://${SERVER_IP}:8080

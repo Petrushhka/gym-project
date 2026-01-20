@@ -19,6 +19,7 @@ import com.gymproject.payment.payment.exception.PaymentException;
 import com.gymproject.payment.payment.infrastructure.persistence.PaymentRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -35,6 +36,9 @@ public class PaymentService {
     private final JsonSerializer jsonSerializer;
     private final List<RefundProcessor> refundProcessor;
     private final PaymentGatewayPort paymentGatewayPort;
+
+    @Value("${app.payment.base-url}")
+    private String apiBaseUrl;
 
     @Transactional
     // 1. PG사에서 웹훅이 올 때 호출하는 메서드(결제 확정)
@@ -87,8 +91,8 @@ public class PaymentService {
                 savedPayment.getSnapshotPlanName(),
                 savedPayment.getAmountCents(),
                 "aud", // 통화 단위
-                "http://localhost:8080/api/v1/payments/payment/success?paymentKey={CHECKOUT_SESSION_ID}",
-                "http://localhost:8080/api/v1/payments/payment/cancel"
+               apiBaseUrl + "/api/v1/payments/payment/success?paymentKey={CHECKOUT_SESSION_ID}",
+                apiBaseUrl + "/api/v1/payments/payment/cancel"
         );
 
 

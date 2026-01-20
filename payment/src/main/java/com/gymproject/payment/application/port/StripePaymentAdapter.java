@@ -19,6 +19,9 @@ public class StripePaymentAdapter implements PaymentGatewayPort {
     @Value("${stripe.api-secret-key}")
     private String apiSecretKey;
 
+    @Value("${app.payment.base-url}")
+    private String apiBaseUrl;
+
     // 프로젝트가 시작될 때 Stripe API를 설정
     @PostConstruct
     public void init() {
@@ -37,8 +40,8 @@ public class StripePaymentAdapter implements PaymentGatewayPort {
                     .addPaymentMethodType(SessionCreateParams.PaymentMethodType.CARD)
                     .setMode(SessionCreateParams.Mode.PAYMENT)
                     // 결제 성공, 취소 시 돌아올 URL (프론트엔드 주소)
-                    .setSuccessUrl("http://localhost:8080/api/v1/payments/payment/success") // 프론트엔드 주소임
-                    .setCancelUrl("http://localhost:8080/api/v1/payments/payment/cancel") // 프론트엔드 주소임
+                    .setSuccessUrl(apiBaseUrl + "/api/v1/payments/payment/success") // 프론트엔드 주소임
+                    .setCancelUrl(apiBaseUrl + "/api/v1/payments/payment/cancel") // 프론트엔드 주소임
                     .setClientReferenceId(String.valueOf(userId)) // UserId 저장
 
                     // 메타데이터

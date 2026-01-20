@@ -1,10 +1,10 @@
 package com.gymproject.api.config;
 
-import com.gymproject.auth.infrastructure.web.OAuth2FailureHandler;
-import com.gymproject.auth.infrastructure.web.OAuth2SuccessHandler;
+import com.gymproject.auth.infrastructure.external.OAuth2UserProviderRouter;
 import com.gymproject.auth.infrastructure.jwt.JwtAuthFilter;
 import com.gymproject.auth.infrastructure.jwt.JwtAuthenticationEntryPoint;
-import com.gymproject.auth.infrastructure.external.OAuth2UserProviderRouter;
+import com.gymproject.auth.infrastructure.web.OAuth2FailureHandler;
+import com.gymproject.auth.infrastructure.web.OAuth2SuccessHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,6 +19,8 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
+
+import static org.springframework.http.HttpMethod.*;
 
 @Configuration
 @EnableWebSecurity
@@ -47,23 +49,46 @@ public class SecurityConfig {
                                         "/swagger-ui/**",
                                         "/swagger-resources/**").permitAll()
 
-                                .requestMatchers(
-                                        "/api/v1/auth/**",
-                                        "/api/v1/auth/**",
-                                        "/oauth/**",
-                                        "/book/**",
-                                        "/api/v1/classes/**",
-                                        "/api/v1/schedules/**",
-//                                        "/api/v1/templates/**",
-                                        "/api/v1/payments/**",
-                                        "/api/v1/admin/products/**",
-                                        "/api/webhook/**",
-                                        "/api/v1/calendars/**",
-                                        "/api/v1/memberships/**",
-                                        "/api/v1/sessions/**",
-                                        "/users/**").permitAll()
-                                .requestMatchers(
-                                        "/email/**").permitAll()
+                                // [공통 & 이메일 관련] - 인증 불필요
+                                .requestMatchers(POST, "/api/v1/auth/emails/codes").permitAll()        // 코드 발송
+                                .requestMatchers(GET, "/api/v1/auth/emails/verifications").permitAll() // 가입용 코드 확인
+                                .requestMatchers(POST, "/api/v1/auth/passwords/verification-code").permitAll() // 비번찾기 코드 확인
+                                .requestMatchers(POST, "/api/v1/auth/emails/search").permitAll()       // 이메일 찾기
+                                // [회원가입 & 로그인 관련] - 인증 불필요
+                                .requestMatchers(POST, "/api/v1/auth/signup").permitAll()        // 일반 가입
+                                .requestMatchers(POST, "/api/v1/auth/signup/social").permitAll() // 소셜 가입(추가정보)
+                                // [로그인 & 토큰 갱신] - 인증 불필요
+                                .requestMatchers(POST, "/api/v1/auth/login").permitAll()
+                                .requestMatchers(POST, "/api/v1/auth/refresh").permitAll()
+                                // [비밀번호 재설정 (비로그인)] - 인증 불필요
+                                .requestMatchers(POST, "/api/v1/auth/passwords/reset").permitAll()
+                                //[예약 진행] - 정회원용
+                                .requestMatchers(POST, "/api/v1/bookings").hasAnyRole("MEMBER", "ADMIN")
+                                // [예약 승인/거절] - 트레이너/관리자용
+                                .requestMatchers(POST, "/api/v1/bookings/*/status").hasAnyRole("TRAINER", "ADMIN")
+                                // [정기 수업 예약 / 취소] - 정회원용
+                                .requestMatchers(POST, "/api/v1/bookings/curriculums/*").hasAnyRole("TRAINER", "ADMIN", "MEMBER")
+                                .requestMatchers(POST, "/api/v1/bookings/schedules/*").hasAnyRole("TRAINER", "ADMIN", "MEMBER")
+                                .requestMatchers(DELETE, "/api/v1/bookings/curriculums/*").hasAnyRole("TRAINER", "ADMIN", "MEMBER")
+                                // [예약 막기/해제] - 트레이너만/관리자용
+                                .requestMatchers("/api/v1/time-offs/**").hasAnyRole("TRAINER", "ADMIN")
+                                // [수업 템플릿 생성/ 삭제]
+                                .requestMatchers("/api/v1/templates/**").hasAnyRole("TRAINER", "ADMIN")
+                                // [정기 수업 생성/ 삭제]
+                                .requestMatchers("/api/v1/classes/**").hasAnyRole("TRAINER", "ADMIN")
+                                // [개별 수업 관리]
+                                .requestMatchers("/api/v1/schedules/**").hasAnyRole("TRAINER", "ADMIN")
+                                // [상품등록]
+                                .requestMatchers("/api/v1/admin/products/**").hasAnyRole("TRAINER", "ADMIN")
+                                // [결제 환불]
+                                .requestMatchers(POST,"/api/v1/payments/refund").hasAnyRole("MEMBER", "ADMIN")
+                                // [결제 리다이렉터 경로 - 추후 프론트 주소로 옮겨야함]
+                                .requestMatchers(GET,"/api/v1/payments/payment/success").permitAll()
+                                .requestMatchers(GET,"/api/v1/payments/payment/cancel").permitAll()
+                                // [stripe 웹훅]
+                                .requestMatchers(POST,"/api/webhook/**").permitAll()
+                                // [일정 조회]
+                                .requestMatchers(GET,"/api/v1/calendars/**").permitAll()
                                 .anyRequest().authenticated())
                 .exceptionHandling(exception ->
                         exception.authenticationEntryPoint(jwtAuthenticationEntryPoint))
