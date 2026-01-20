@@ -10,9 +10,16 @@ RUN gradle build-x test --parallel --continue > /dev/null 2>&1 || true
 COPY . /build
 RUN gradle build -x test --parallel
 
+# 껍데기(plain) 빼고 진짜만 app.jar로 저장
+RUN find api/build/libs -name "*.jar" ! -name "*-plain.jar" -exec cp {} /build/app.jar \;
+
 ## 실행 단계(JDK)
 FROM amazoncorretto:17-alpine
 WORKDIR /app
 
-# 빌드 결과물(jar) 복사
-COPY --from=builder /build/build/libs/*-SNAPSHOT.jar app.jar
+# 빌드 결과물(jar)
+COPY --from=builder /build/app.jar app.jar
+
+# 실행 명렁어
+ENTRYPOINT ["java", "-jar", "-Dspring.profiles.active=prod", "app.jar"]
+
