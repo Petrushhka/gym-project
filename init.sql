@@ -244,8 +244,6 @@ CREATE TABLE public."CLASS_SCHEDULE_TB" (
                                             CONSTRAINT ck_schedule_time_order CHECK ((upper(time_range) > lower(time_range))),
                                             CONSTRAINT no_schedule_overlap EXCLUDE USING gist (trainer_id WITH =, time_range WITH &&) WHERE (((status)::text <> ALL (ARRAY['CANCELED'::text, 'CANCELLED'::text])))
 );
-CREATE INDEX no_schedule_overlap ON public."CLASS_SCHEDULE_TB" USING gist (trainer_id, time_range) WHERE ((status)::text <> ALL (ARRAY['CANCELED'::text, 'CANCELLED'::text]));
-
 
 -- public."CLASS_SCHEDULE_TB" foreign keys
 
