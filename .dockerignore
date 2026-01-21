@@ -1,0 +1,2 @@
+# pg-data 폴더는 무시
+echo "pg_data/" >> .dockerignore
