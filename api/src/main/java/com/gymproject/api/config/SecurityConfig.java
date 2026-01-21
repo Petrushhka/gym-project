@@ -49,6 +49,9 @@ public class SecurityConfig {
                                         "/swagger-ui/**",
                                         "/swagger-resources/**").permitAll()
 
+                                //[AWS 로드밸런서, Nginx가 서버 상태확인할 때 루트 열기]
+                                .requestMatchers(GET, "/").permitAll()
+                                .requestMatchers(POST, "/error").permitAll()
                                 // [공통 & 이메일 관련] - 인증 불필요
                                 .requestMatchers(POST, "/api/v1/auth/emails/codes").permitAll()        // 코드 발송
                                 .requestMatchers(POST, "/api/v1/auth/emails/verifications").permitAll() // 가입용 코드 확인
