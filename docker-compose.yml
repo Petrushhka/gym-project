@@ -52,3 +52,6 @@ services:
 networks:
   gym-net:
     driver: bridge
+
+volumes:
+  gym_db_data:
