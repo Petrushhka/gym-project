@@ -1,7 +1,6 @@
 package com.gymproject.auth.application.dto.request;
 
 import com.gymproject.common.event.domain.ProfileInfo;
-import com.gymproject.common.exception.InvalidInputException;
 import com.gymproject.common.security.SexType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
@@ -46,15 +45,6 @@ public class BaseUserRequest {
                 this.phoneNumber,
                 SexType.valueOf(this.gender)
         );
-    }
-
-    @Schema(hidden = true) // 이 메서드를 스웨거 스키마에서 숨김
-    public SexType getGender() {
-        try {
-            return SexType.valueOf(gender.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            throw new InvalidInputException("잘못된 성별 형식입니다.");
-        }
     }
 
 }
