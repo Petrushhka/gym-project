@@ -93,6 +93,9 @@ app:
     signup-redirect-uri: http://localhost:3000/signup
     failure-redirect-uri: http://localhost:3000/login
 
+  payment:
+    base-url: localhost
+
 logging:
   level:
     org:

@@ -15,15 +15,15 @@ import lombok.NoArgsConstructor;
 @Schema(description = "회원가입 시 사용자 공통 요청 정보")
 public class BaseUserRequest {
 
-    @Schema(description = "이름", example = "길동")
+    @Schema(description = "이름", example = "Gildong")
     @NotBlank(message = "First name is required")
     String firstName;
 
-    @Schema(description = "성", example = "홍")
+    @Schema(description = "성", example = "Hong")
     @NotBlank(message = "Last name is required")
     String lastName;
 
-    @Schema(description = "이메일 (인증 완료된 이메일)", example = "hajun@gym.com")
+    @Schema(description = "이메일 (인증 완료된 이메일)", example = "test@naver.com")
     @NotBlank(message = "email is required")
     @Email(message = "이메일 형식이 맞지 않습니다.")
     String email;
@@ -38,6 +38,7 @@ public class BaseUserRequest {
             message = "Please enter a valid Australian mobile number (e.g. 0412 345 678 or +61 412 345 678).")
     String phoneNumber;
 
+    @Schema(hidden = true) // 이 메서드를 스웨거 스키마에서 숨김(Getter때문에 스웨거 문서에 드러남)
     public ProfileInfo getProfileInfo() {
         return new ProfileInfo(
                 this.getFirstName(),
@@ -47,6 +48,7 @@ public class BaseUserRequest {
         );
     }
 
+    @Schema(hidden = true) // 이 메서드를 스웨거 스키마에서 숨김
     public SexType getGender() {
         try {
             return SexType.valueOf(gender.toUpperCase());
