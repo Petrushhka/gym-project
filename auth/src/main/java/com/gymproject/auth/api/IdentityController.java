@@ -43,7 +43,7 @@ public class IdentityController {
 
     // 1-1. 회원가입용 이메일 인증 확인
     @Operation(summary = "2-A. 회원가입용 이메일 인증 확인" , description = "발송된 코드를 검증하여 이메일 소유 여부를 확인합니다. ")
-    @GetMapping("/emails/verifications")
+    @PostMapping("/emails/verifications")
     public ResponseEntity<CommonResDto<Void>> verifySignupEmail(
             @RequestBody @Valid VerifyCodeRequest request) {
 
