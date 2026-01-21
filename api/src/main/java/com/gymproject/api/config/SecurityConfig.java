@@ -51,7 +51,7 @@ public class SecurityConfig {
 
                                 // [공통 & 이메일 관련] - 인증 불필요
                                 .requestMatchers(POST, "/api/v1/auth/emails/codes").permitAll()        // 코드 발송
-                                .requestMatchers(GET, "/api/v1/auth/emails/verifications").permitAll() // 가입용 코드 확인
+                                .requestMatchers(POST, "/api/v1/auth/emails/verifications").permitAll() // 가입용 코드 확인
                                 .requestMatchers(POST, "/api/v1/auth/passwords/verification-code").permitAll() // 비번찾기 코드 확인
                                 .requestMatchers(POST, "/api/v1/auth/emails/search").permitAll()       // 이메일 찾기
                                 // [회원가입 & 로그인 관련] - 인증 불필요
