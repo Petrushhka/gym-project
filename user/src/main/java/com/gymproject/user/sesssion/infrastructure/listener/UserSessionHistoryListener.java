@@ -3,7 +3,6 @@ package com.gymproject.user.sesssion.infrastructure.listener;
 import com.gymproject.user.sesssion.domain.entity.UserSession;
 import com.gymproject.user.sesssion.domain.entity.UserSessionHistory;
 import com.gymproject.user.sesssion.domain.event.SessionChangedEvent;
-import com.gymproject.user.sesssion.domain.type.SessionChangeType;
 import com.gymproject.user.sesssion.infrastructure.persistence.UserSessionHistoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -58,6 +57,12 @@ public class UserSessionHistoryListener {
                             session,
                             event.getModifier(),
                             event.getAmount()
+                    );
+                    case ISSUE -> UserSessionHistory.recordIssue(
+                            session,
+                            event.getType().getDescription(),
+                            session.getSessionType(),
+                            event.getModifier()
                     );
                 };
 

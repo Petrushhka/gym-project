@@ -156,6 +156,22 @@ public class UserSessionHistory extends BaseEntity {
                 .build();
     }
 
+    // 세션권 신규 지급
+    public static UserSessionHistory recordIssue(UserSession session, String detail,
+                                                    SessionType sessionType, Modifier modifier) {
+        return UserSessionHistory.builder()
+                .userSession(session)
+                .userId(session.getUser().getUserId())
+                .changeType(SessionChangeType.ISSUE)
+                .amount(session.getTotalSessions())
+                .remainingSessions(session.getRemainingSessions())
+                .description(detail)
+                .sessionType(sessionType)
+                .expiredAtSnapshot(session.getExpireAt())
+                .modifier(modifier)
+                .build();
+    }
+
     // 세션권 만료
     public static UserSessionHistory recordExpire(UserSession session, Modifier modifier,
                                                   int amount){

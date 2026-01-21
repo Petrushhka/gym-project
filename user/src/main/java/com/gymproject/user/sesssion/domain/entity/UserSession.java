@@ -101,8 +101,8 @@ public class UserSession extends AbstractAggregateRoot<UserSession> {
                 .status(UserSessionStatus.ACTIVE)
                 .build();
 
-        session.registerEvent(
-                SessionChangedEvent.purchased(session, modifier, 1)
+        session.registerEvent( // 초기 무료 세션티켓: 횟수 1번 지급
+                SessionChangedEvent.issued(session, modifier, 1)
         );
 
         return session;

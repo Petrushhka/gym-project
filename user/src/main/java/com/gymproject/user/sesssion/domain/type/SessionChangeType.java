@@ -4,7 +4,8 @@ import lombok.Getter;
 
 @Getter
 public enum SessionChangeType {
-    PURCHASE("구매"),       // 세션권 신규 생성/구매
+    ISSUE("신규 지급"), // 세션권 신규 발급
+    PURCHASE("구매"),       // 세션권 구매
     USE("사용"),            // 수업 예약으로 인한 차감
     RESTORE("복구"),         // 예약 취소로 인한 복구
     EXPIRED("만료"),        // 유효기간 경과

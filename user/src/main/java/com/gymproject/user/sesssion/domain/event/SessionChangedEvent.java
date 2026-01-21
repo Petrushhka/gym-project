@@ -48,6 +48,13 @@ public class SessionChangedEvent {
 
     /**  --------------- 정적 팩토리 메서드 ---------------- **/
 
+    // 세션권 신규 (지급)
+    public static SessionChangedEvent issued(UserSession userSession, Modifier modifier, int amount){
+        return new Builder(userSession, modifier)
+                .action(SessionChangeType.ISSUE, amount)
+                .build();
+    }
+
     // 세션 사용(차감)
     public static SessionChangedEvent used(UserSession userSession, Modifier modifier){
         return new Builder(userSession, modifier)
