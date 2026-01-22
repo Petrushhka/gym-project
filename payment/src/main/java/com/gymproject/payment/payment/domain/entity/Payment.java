@@ -1,18 +1,17 @@
 package com.gymproject.payment.payment.domain.entity;
 
 import com.gymproject.common.security.Roles;
-import com.gymproject.payment.payment.domain.type.PaymentStatus;
+import com.gymproject.common.util.GymDateUtil;
 import com.gymproject.payment.payment.domain.event.PaymentChangedEvent;
-import com.gymproject.payment.product.domain.type.ProductCategory;
+import com.gymproject.payment.payment.domain.type.PaymentStatus;
 import com.gymproject.payment.payment.exception.PaymentErrorCode;
 import com.gymproject.payment.payment.exception.PaymentException;
+import com.gymproject.payment.product.domain.type.ProductCategory;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.data.domain.AbstractAggregateRoot;
 
 import java.time.OffsetDateTime;
@@ -85,13 +84,25 @@ public class Payment extends AbstractAggregateRoot<Payment> {
     @Enumerated(EnumType.STRING)
     private Roles refundActorRole;
 
-    @CreationTimestamp
     @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
 
-    @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
+
+    // 호주시간으로 저장
+    @PrePersist
+    public void onPrePersist() {
+        OffsetDateTime now = GymDateUtil.now();
+        this.createdAt = now;
+        this.updatedAt = now;
+    }
+
+    // 호주시간으로 저장
+    @PreUpdate
+    public void onPreUpdate() {
+        this.updatedAt = GymDateUtil.now();
+    }
 
     @Builder
     public Payment(Long userId, Long amountCents, String providerPaymentId,

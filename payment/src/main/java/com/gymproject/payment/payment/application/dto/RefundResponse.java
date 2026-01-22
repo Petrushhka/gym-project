@@ -1,5 +1,6 @@
 package com.gymproject.payment.payment.application.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 
@@ -21,6 +22,7 @@ public record RefundResponse(
         String status,
 
         @Schema(description = "환불 완료 일시 (브리즈번 기준)", example = "2026-01-19T10:15:30+10:00")
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Australia/Brisbane")
         OffsetDateTime refundedAt
 ) {
 }

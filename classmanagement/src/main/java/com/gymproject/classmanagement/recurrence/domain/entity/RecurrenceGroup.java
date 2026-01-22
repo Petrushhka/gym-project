@@ -7,13 +7,12 @@ import com.gymproject.classmanagement.recurrence.domain.type.RecurrenceType;
 import com.gymproject.classmanagement.recurrence.exception.RecurrenceErrorCode;
 import com.gymproject.classmanagement.recurrence.exception.RecurrenceException;
 import com.gymproject.classmanagement.template.domain.entity.Template;
+import com.gymproject.common.util.GymDateUtil;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.AbstractAggregateRoot;
@@ -87,13 +86,25 @@ public class RecurrenceGroup extends AbstractAggregateRoot<RecurrenceGroup> {
     @Column(name = "status")
     private RecurrenceStatus recurrenceStatus;
 
-    @CreationTimestamp
     @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
 
-    @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
+
+    // 호주시간으로 저장
+    @PrePersist
+    public void onPrePersist() {
+        OffsetDateTime now = GymDateUtil.now();
+        this.createdAt = now;
+        this.updatedAt = now;
+    }
+
+    // 호주시간으로 저장
+    @PreUpdate
+    public void onPreUpdate() {
+        this.updatedAt = GymDateUtil.now();
+    }
 
     @Builder(access = AccessLevel.PRIVATE)
     private RecurrenceGroup(Long trainerId,

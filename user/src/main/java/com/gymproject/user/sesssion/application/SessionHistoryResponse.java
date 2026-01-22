@@ -1,5 +1,6 @@
 package com.gymproject.user.sesssion.application;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.gymproject.user.profile.domain.type.UserSessionStatus;
 import com.gymproject.user.sesssion.domain.entity.UserSessionHistory;
 import com.gymproject.user.sesssion.domain.type.SessionChangeType;
@@ -32,6 +33,7 @@ public record SessionHistoryResponse(
         String description,
 
         @Schema(description = "만료일", example = "2026-03-22T00:00:00+09:00")
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Australia/Brisbane")
         OffsetDateTime expiredAt,
 
         @Schema(description = "변경 시점 상태", example = "ACTIVE")
@@ -41,6 +43,7 @@ public record SessionHistoryResponse(
         String modifierName,
 
         @Schema(description = "처리 일시", example = "2026-01-22T14:30:00+09:00")
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Australia/Brisbane")
         OffsetDateTime createdAt
 ) {
     // dto 변경 메서드

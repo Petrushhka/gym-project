@@ -2,8 +2,10 @@ package com.gymproject.booking.booking.infrastructure.persistence;
 
 import com.gymproject.booking.booking.domain.entity.BookingHistory;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
-public interface BookingHistoryRepository extends JpaRepository<BookingHistory, Long> {
+public interface BookingHistoryRepository extends JpaRepository<BookingHistory, Long>,
+        JpaSpecificationExecutor<BookingHistory> {
 }
 
 /*

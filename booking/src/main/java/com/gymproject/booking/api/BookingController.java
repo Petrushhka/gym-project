@@ -1,10 +1,12 @@
 package com.gymproject.booking.api;
 
 import com.gymproject.booking.booking.application.BookingService;
+import com.gymproject.booking.booking.application.dto.reponse.BookingHistoryResponse;
 import com.gymproject.booking.booking.application.dto.reponse.BookingResponse;
 import com.gymproject.booking.booking.application.dto.reponse.CurriculumBookingResponse;
 import com.gymproject.booking.booking.application.dto.reponse.CurriculumCancelResponse;
 import com.gymproject.booking.booking.application.dto.request.AttendanceRequest;
+import com.gymproject.booking.booking.application.dto.request.BookingHistorySearchCondition;
 import com.gymproject.booking.booking.application.dto.request.BookingReviewRequest;
 import com.gymproject.booking.booking.application.dto.request.PTRequest;
 import com.gymproject.common.dto.auth.UserAuthInfo;
@@ -13,6 +15,11 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
@@ -113,6 +120,31 @@ public class BookingController {
         return ResponseEntity.ok(
                 CommonResDto.success(200, "전체 강좌 예약이 성공적으로 취소되었습니다.", response)
         );
+    }
+
+    @Operation(
+            summary = "예약 변경 이력 검색",
+            description = """
+                    다양한 조건으로 예약 변경 이력을 조회합니다. (페이징 지원)
+                    
+                    - bookingId: 특정 예약의 이력만 조회
+                    - modifierId: 특정 관리자나 회원이 변경한 내역 조회
+                    - actionType: 취소(CANCEL), 노쇼(NOSHOW) 등 특정 이벤트 필터링
+                    - 기간 검색: startDate ~ endDate (호주 시간 기준)
+                    """
+    )
+    @GetMapping
+    public ResponseEntity<CommonResDto<Page<BookingHistoryResponse>>> searchBookingHistories(
+            // @ParameterObject: Swagger에서 쿼리 파라미터를 펼쳐서 보여줌
+            @ParameterObject @ModelAttribute BookingHistorySearchCondition condition,
+
+            // 기본 정렬: 최신순 (내림차순)
+            @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+    ) {
+
+        Page<BookingHistoryResponse> response = bookingService.searchHistories(condition, pageable);
+
+        return ResponseEntity.ok(CommonResDto.success(200, "예약 이력 조회가 완료되었습니다.", response));
     }
 
 //    @Operation(summary = "수업 다중 예약 (벌크)", description = "날짜 또는 수업 종류별 선택한 여러 개의 수업을 한 번에 예약합니다.")

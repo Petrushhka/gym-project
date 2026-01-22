@@ -1,5 +1,6 @@
 package com.gymproject.user.profile.domain.event;
 
+import com.gymproject.common.util.GymDateUtil;
 import com.gymproject.user.profile.domain.entity.User;
 import lombok.Getter;
 
@@ -18,7 +19,7 @@ public class UserJoinedEvent {
     public static UserJoinedEvent joinedUser(User user) {
         return new UserJoinedEvent(
                 user,
-                OffsetDateTime.now()
+                GymDateUtil.now()
         );
     }
 }

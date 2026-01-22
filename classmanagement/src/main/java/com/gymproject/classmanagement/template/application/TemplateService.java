@@ -7,11 +7,10 @@ import com.gymproject.classmanagement.template.infrastructure.persistence.Templa
 import com.gymproject.classmanagement.template.infrastructure.persistence.TemplateRepository;
 import com.gymproject.common.dto.auth.UserAuthInfo;
 import com.gymproject.common.port.auth.IdentityQueryPort;
+import com.gymproject.common.util.GymDateUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.OffsetDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -41,7 +40,7 @@ public class TemplateService {
         identityQueryPort.validateTrainer(userAuthInfo.getUserId());
         Template template = templateReader.getTemplate(templateId);
 
-        template.softDelete(OffsetDateTime.now());
+        template.softDelete(GymDateUtil.now());
         templateRepository.delete(template);
 
         return TemplateResponse.create(template);

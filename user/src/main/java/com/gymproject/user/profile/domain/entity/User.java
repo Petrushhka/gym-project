@@ -1,6 +1,7 @@
 package com.gymproject.user.profile.domain.entity;
 
 import com.gymproject.common.security.SexType;
+import com.gymproject.common.util.GymDateUtil;
 import com.gymproject.user.profile.domain.event.UserJoinedEvent;
 import com.gymproject.user.profile.domain.policy.UserProfilePolicy;
 import com.gymproject.user.profile.domain.vo.PhoneNumber;
@@ -10,8 +11,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.Hibernate;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.data.domain.AbstractAggregateRoot;
 import org.springframework.data.domain.Persistable;
 
@@ -41,13 +40,25 @@ public class User extends AbstractAggregateRoot<User> implements Persistable<Lon
     @Embedded
     private PhoneNumber phoneNumber;
 
-    @CreationTimestamp
     @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
 
-    @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
+
+    // 호주시간으로 저장
+    @PrePersist
+    public void onPrePersist() {
+        OffsetDateTime now = GymDateUtil.now();
+        this.createdAt = now;
+        this.updatedAt = now;
+    }
+
+    // 호주시간으로 저장
+    @PreUpdate
+    public void onPreUpdate() {
+        this.updatedAt = GymDateUtil.now();
+    }
 
     @Builder
     private User(Long userId, String firstName, String lastName, SexType sex, PhoneNumber phoneNumber){

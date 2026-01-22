@@ -1,5 +1,6 @@
 package com.gymproject.user.sesssion.domain.entity;
 
+import com.gymproject.common.util.GymDateUtil;
 import com.gymproject.common.vo.Modifier;
 import com.gymproject.user.profile.domain.entity.User;
 import com.gymproject.user.profile.domain.type.UserSessionStatus;
@@ -15,8 +16,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.Hibernate;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.data.domain.AbstractAggregateRoot;
 
 import java.time.OffsetDateTime;
@@ -62,14 +61,25 @@ public class UserSession extends AbstractAggregateRoot<UserSession> {
     @Column(name = "session_product_type", nullable = false)
     private SessionProductType sessionProductType;
 
-
-    @CreationTimestamp
     @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
 
-    @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
+
+    // 호주시간으로 저장
+    @PrePersist
+    public void onPrePersist() {
+        OffsetDateTime now = GymDateUtil.now();
+        this.createdAt = now;
+        this.updatedAt = now;
+    }
+
+    // 호주시간으로 저장
+    @PreUpdate
+    public void onPreUpdate() {
+        this.updatedAt = GymDateUtil.now();
+    }
 
     @Version
     @Column(name = "version", nullable = false)

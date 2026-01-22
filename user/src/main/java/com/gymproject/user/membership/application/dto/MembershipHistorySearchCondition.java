@@ -27,7 +27,7 @@ public record MembershipHistorySearchCondition(
         @Schema(description = "변경 유형 필터 (PURCHASE, REFUND 등)", example = "PURCHASE")
         MembershipChangeType changeType,
 
-        @Schema(description = "멤버십 종류 필터 (MEMBERSHIP_3M 등)" , example = "MEMBERSHIP_3M")
+        @Schema(description = "멤버십 종류 필터 (MEMBERSHIP_3)(프론트에서 고정값으로 사용할 예정)" , example = "MONTH_3")
         MembershipPlanType planType
 
 ) {

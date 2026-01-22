@@ -1,5 +1,6 @@
 package com.gymproject.classmanagement.schedule.application.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.gymproject.classmanagement.schedule.domain.entity.Schedule;
 import com.gymproject.classmanagement.schedule.domain.type.ScheduleStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -19,9 +20,11 @@ public class ScheduleResponse {
     private String title;          // 수업 제목
 
     @Schema(description = "수업 시작 시간 (브리즈번 기준 ISO-8601)", example = "2026-02-01T10:00:00+10:00")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Australia/Brisbane")
     private OffsetDateTime start;  // 시작 시간 (Full Calendar 등 라이브러리 포맷)
 
     @Schema(description = "수업 종료 시간 (브리즈번 기준 ISO-8601)", example = "2026-02-01T11:00:00+10:00")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Australia/Brisbane")
     private OffsetDateTime end;    // 종료 시간
 
     @Schema(description = "수업 상태 (OPEN: 예약가능, CLOSED: 마감, CANCELLED: 폐강)", example = "OPEN")

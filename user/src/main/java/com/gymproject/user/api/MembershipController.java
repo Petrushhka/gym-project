@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -52,7 +53,7 @@ public class MembershipController {
         );
     }
 
-    @Operation(summary = "2. 멤버십 변경 이력 검색 및 조회", description = """
+    @Operation(summary = "4. 멤버십 변경 이력 검색 및 조회", description = """
                 다양한 조건으로 멤버십 이력을 검색합니다.(모든 사용자가 하나의 api 사용)
                 
                 - 페이징: `page=0&size=20` 형태로 요청(기본값: 0페이지, 10개)
@@ -61,7 +62,8 @@ public class MembershipController {
             """)
     @GetMapping("/history")
     public ResponseEntity<CommonResDto<Page<MembershipHistoryResponse>>> getMembershipHistory(
-
+            // @ParameterObject: Swagger에서 쿼리 파라미터를 펼쳐서 보여줌
+            @ParameterObject
             // 1. 검색 조건(쿼리 파라미터)
             @ModelAttribute MembershipHistorySearchCondition condition,
 

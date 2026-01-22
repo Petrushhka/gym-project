@@ -8,13 +8,12 @@ import com.gymproject.common.dto.auth.UserAuthInfo;
 import com.gymproject.common.event.domain.ProfileInfo;
 import com.gymproject.common.security.AuthProvider;
 import com.gymproject.common.security.Roles;
+import com.gymproject.common.util.GymDateUtil;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.data.domain.AbstractAggregateRoot;
 
 import java.time.OffsetDateTime;
@@ -49,13 +48,25 @@ public class Identity extends AbstractAggregateRoot<Identity> {
     @OneToMany(mappedBy = "identity", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Oauth> oauths = new ArrayList<>();
 
-    @CreationTimestamp
     @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
 
-    @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
+
+    // 호주시간으로 저장
+    @PrePersist
+    public void onPrePersist() {
+        OffsetDateTime now = GymDateUtil.now();
+        this.createdAt = now;
+        this.updatedAt = now;
+    }
+
+    // 호주시간으로 저장
+    @PreUpdate
+    public void onPreUpdate() {
+        this.updatedAt = GymDateUtil.now();
+    }
 
     @Builder(access = AccessLevel.PRIVATE)
     private Identity(String email, String password, Roles role, boolean unsubscribe) {

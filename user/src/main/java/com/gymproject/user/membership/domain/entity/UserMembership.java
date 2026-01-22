@@ -1,20 +1,19 @@
 package com.gymproject.user.membership.domain.entity;
 
+import com.gymproject.common.util.GymDateUtil;
 import com.gymproject.common.vo.Modifier;
-import com.gymproject.user.membership.domain.policy.MembershipPolicy;
-import com.gymproject.user.profile.domain.entity.User;
 import com.gymproject.user.membership.domain.event.MembershipChangedEvent;
+import com.gymproject.user.membership.domain.policy.MembershipPolicy;
 import com.gymproject.user.membership.domain.type.MembershipPlanType;
 import com.gymproject.user.membership.domain.type.MembershipStatus;
 import com.gymproject.user.membership.exception.UserMembershipErrorCode;
 import com.gymproject.user.membership.exception.UserMembershipException;
+import com.gymproject.user.profile.domain.entity.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.data.domain.AbstractAggregateRoot;
 
 import java.time.Duration;
@@ -49,13 +48,26 @@ public class UserMembership extends AbstractAggregateRoot<UserMembership> {
     @Column(name = "expired_at", nullable = false)
     private OffsetDateTime expiredAt;
 
-    @CreationTimestamp
     @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
 
-    @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
+
+    // 호주시간으로 저장
+    @PrePersist
+    public void onPrePersist() {
+        OffsetDateTime now = GymDateUtil.now();
+        this.createdAt = now;
+        this.updatedAt = now;
+    }
+
+    // 호주시간으로 저장
+    @PreUpdate
+    public void onPreUpdate() {
+        this.updatedAt = GymDateUtil.now();
+    }
+
 
     @Column(name = "suspend_start_at")
     private OffsetDateTime suspendStartAt; // 정지 시작일

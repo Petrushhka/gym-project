@@ -1,5 +1,6 @@
 package com.gymproject.classmanagement.recurrence.application.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 
@@ -15,9 +16,11 @@ public record OneTimeClassResponse(
         String title,
 
         @Schema(description = "수업 시작 시간 (브리즈번 기준)", example = "2026-02-07T10:00:00+10:00")
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Australia/Brisbane")
         OffsetDateTime startAt,
 
         @Schema(description = "수업 종료 시간 (브리즈번 기준)", example = "2026-02-07T11:00:00+10:00")
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Australia/Brisbane")
         OffsetDateTime endAt,
 
         @Schema(description = "수업 상태", example = "OPEN")

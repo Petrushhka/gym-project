@@ -1,5 +1,6 @@
 package com.gymproject.payment.product.domain.entity;
 
+import com.gymproject.common.util.GymDateUtil;
 import com.gymproject.payment.product.domain.type.ProductCategory;
 import com.gymproject.payment.product.domain.type.ProductStatus;
 import com.gymproject.payment.product.exception.ProductErrorCode;
@@ -9,8 +10,6 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.util.StringUtils;
 
 import java.time.OffsetDateTime;
@@ -43,13 +42,23 @@ public class Product {
     @Column(name = "product_status", nullable = false)
     private ProductStatus status;
 
-    @CreationTimestamp
     @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
 
-    @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
+
+    @PrePersist
+    public void onPrePersist() {
+        OffsetDateTime now = GymDateUtil.now();
+        this.createdAt = now;
+        this.updatedAt = now;
+    }
+
+    @PreUpdate
+    public void onPreUpdate() {
+        this.updatedAt = GymDateUtil.now();
+    }
 
     @Builder(access = AccessLevel.PRIVATE)
     public Product(String name, ProductCategory category,

@@ -1,5 +1,6 @@
 package com.gymproject.user.membership.application.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.gymproject.user.membership.domain.entity.UserMembershipHistory;
 import com.gymproject.user.membership.domain.type.MembershipChangeType;
 import com.gymproject.user.membership.domain.type.MembershipPlanType;
@@ -27,9 +28,11 @@ public record MembershipHistoryResponse(
         int changedDays,
 
         @Schema(description = "변경 전 만료일 (신규 구매시 null)", example = "2026-02-20T00:00:00+09:00")
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Australia/Brisbane")
         OffsetDateTime previousEndDate,
 
         @Schema(description = "변경 후 만료일 (최종 반영일)", example = "2026-03-22T00:00:00+09:00")
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Australia/Brisbane")
         OffsetDateTime newEndDate,
 
         @Schema(description = "변경 시점 멤버십 상태", example = "ACTIVE")
@@ -39,6 +42,7 @@ public record MembershipHistoryResponse(
         String modifierName,
 
         @Schema(description = "처리 일시", example = "2026-01-22T14:30:00+09:00")
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Australia/Brisbane")
         OffsetDateTime createdAt
 ) {
     // dto 변경 메서드

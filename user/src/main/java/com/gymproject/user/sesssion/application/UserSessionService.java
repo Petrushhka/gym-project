@@ -6,6 +6,7 @@ import com.gymproject.common.dto.payment.ProductInfo;
 import com.gymproject.common.event.integration.ProductCreatedEvent;
 import com.gymproject.common.port.payment.PaymentPort;
 import com.gymproject.common.port.payment.ProductPort;
+import com.gymproject.common.util.GymDateUtil;
 import com.gymproject.common.util.JsonSerializer;
 import com.gymproject.common.vo.Modifier;
 import com.gymproject.user.membership.application.dto.CheckoutResponse;
@@ -56,7 +57,7 @@ public class UserSessionService {
     public Long consume(Long userId, SessionConsumeKind sessionConsumeKind) {
         // 1) session type 확인
         SessionType targetType = toSessionType(sessionConsumeKind);
-        OffsetDateTime now = OffsetDateTime.now();
+        OffsetDateTime now = GymDateUtil.now();
 
         // 2) 사용 가능한 세션 1개 조회(DB에서 필터링)
         UserSession session = findConsumableSession(userId, targetType, now);
@@ -92,7 +93,7 @@ public class UserSessionService {
 
     // 3. 세션권 구매요청
     public CheckoutResponse prepareSessionCheckout(Long userId, SessionPurchaseRequest request) {
-        OffsetDateTime now = OffsetDateTime.now();
+        OffsetDateTime now = GymDateUtil.now();
 
         // 1. 상품 정보 가져오기(Product)
         ProductInfo productInfo = productPort.getProductInfo(request.productId());
@@ -124,7 +125,7 @@ public class UserSessionService {
         User user = userProfileService.getById(userId);
 
         // 2. 상품 타입 변환
-        OffsetDateTime now = OffsetDateTime.now();
+        OffsetDateTime now = GymDateUtil.now();
         SessionProductType productType = SessionProductType.findByCode(productCode);
         ProductContractV1 contract = parseAndValidateContract(contractJson); // 영수증(계약서)
 
@@ -143,7 +144,7 @@ public class UserSessionService {
 
     // 5. 신규회원 세션권 지급
     public void freeSession(User user){
-        OffsetDateTime now = OffsetDateTime.now();
+        OffsetDateTime now = GymDateUtil.now();
 
         UserSession.createFreeTrial(user, Modifier.system(), now);
     }
@@ -186,7 +187,7 @@ public class UserSessionService {
     public void refundSession(Long sessionId, Modifier modifier) {
         userSessionRepository.findById(sessionId)
                 .ifPresent(userSession -> {
-                    userSession.refund(modifier, OffsetDateTime.now());
+                    userSession.refund(modifier, GymDateUtil.now());
                     userSessionRepository.save(userSession);
                 });
     }

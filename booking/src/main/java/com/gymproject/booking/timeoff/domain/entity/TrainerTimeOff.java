@@ -4,6 +4,7 @@ import com.gymproject.booking.timeoff.domain.event.TimeOffChangedEvent;
 import com.gymproject.booking.timeoff.domain.policy.TrainerTimeOffPolicy;
 import com.gymproject.booking.timeoff.domain.type.TimeOffStatus;
 import com.gymproject.booking.timeoff.domain.type.TimeOffType;
+import com.gymproject.common.util.GymDateUtil;
 import io.hypersistence.utils.hibernate.type.range.PostgreSQLRangeType;
 import io.hypersistence.utils.hibernate.type.range.Range;
 import jakarta.persistence.*;
@@ -11,9 +12,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Type;
-import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.data.domain.AbstractAggregateRoot;
 
 import java.time.OffsetDateTime;
@@ -48,13 +47,25 @@ public class TrainerTimeOff extends AbstractAggregateRoot<TrainerTimeOff> {
     @Column(name = "reason")
     private String reason;
 
-    @CreationTimestamp
     @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
 
-    @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
+
+    // 호주시간으로 저장
+    @PrePersist
+    public void onPrePersist() {
+        OffsetDateTime now = GymDateUtil.now();
+        this.createdAt = now;
+        this.updatedAt = now;
+    }
+
+    // 호주시간으로 저장
+    @PreUpdate
+    public void onPreUpdate() {
+        this.updatedAt = GymDateUtil.now();
+    }
 
     @Builder(access = AccessLevel.PRIVATE)
     TrainerTimeOff(Long userId,

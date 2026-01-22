@@ -50,6 +50,7 @@ public class UserSessionHistory extends BaseEntity {
     @Column(name = "remaining_sessions", nullable = false)
     private int remainingSessions; // 변동 후 잔여량 (스냅샷)
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "session_plan_type") // 유료 구매일시에만
     private SessionProductType sessionProductType;
 

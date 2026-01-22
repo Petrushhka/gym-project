@@ -6,6 +6,7 @@ import com.gymproject.classmanagement.recurrence.domain.type.RecurrenceStatus;
 import com.gymproject.classmanagement.schedule.domain.type.ScheduleStatus;
 import com.gymproject.classmanagement.recurrence.infrastructure.persistence.RecurrenceGroupRepository;
 import com.gymproject.classmanagement.schedule.infrastructure.persistence.ScheduleRepository;
+import com.gymproject.common.util.GymDateUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -36,7 +37,7 @@ public class ClassStatusScheduler {
     // 개별 수업 종료(Schedule 단위)
     private void autoFinishSchedules(){
 
-        OffsetDateTime now = OffsetDateTime.now();
+        OffsetDateTime now = GymDateUtil.now();
         List<String> statuses = List.of(ScheduleStatus.OPEN.name(), ScheduleStatus.RESERVED.name(), ScheduleStatus.CLOSED.name());
 
         //1. 상태가 OPEN/CLOSED/RESERVED 이면서 종료 시간이 지난 수업 조회
@@ -55,7 +56,7 @@ public class ClassStatusScheduler {
     // 그룹 수업 전체 종료(Recurrence 단위)
     private void autoFinishRecurrences(){
 
-        OffsetDateTime now = OffsetDateTime.now();
+        OffsetDateTime now = GymDateUtil.now();
         List<String> statuses = List.of(RecurrenceStatus.OPEN.name(), RecurrenceStatus.CLOSED.name());
 
         List<RecurrenceGroup> recurrenceGroups = recurrenceGroupRepository.findExpiredGroups(statuses, now.toLocalDate());

@@ -1,17 +1,21 @@
 package com.gymproject.booking.booking.application;
 
+import com.gymproject.booking.booking.application.dto.reponse.BookingHistoryResponse;
 import com.gymproject.booking.booking.application.dto.reponse.BookingResponse;
 import com.gymproject.booking.booking.application.dto.reponse.CurriculumBookingResponse;
 import com.gymproject.booking.booking.application.dto.reponse.CurriculumCancelResponse;
+import com.gymproject.booking.booking.application.dto.request.BookingHistorySearchCondition;
 import com.gymproject.booking.booking.application.dto.request.PTRequest;
 import com.gymproject.booking.booking.application.util.LocationUtils;
 import com.gymproject.booking.booking.domain.entity.Booking;
+import com.gymproject.booking.booking.domain.entity.BookingHistory;
 import com.gymproject.booking.booking.domain.type.BookingStatus;
 import com.gymproject.booking.booking.domain.type.BookingType;
 import com.gymproject.booking.booking.domain.type.CancellationType;
 import com.gymproject.booking.booking.domain.type.TrainerAction;
 import com.gymproject.booking.booking.exception.BookingErrorCode;
 import com.gymproject.booking.booking.exception.BookingException;
+import com.gymproject.booking.booking.infrastructure.persistence.BookingHistoryRepository;
 import com.gymproject.booking.booking.infrastructure.persistence.BookingRepository;
 import com.gymproject.common.dto.auth.UserAuthInfo;
 import com.gymproject.common.dto.schedule.ScheduleInfo;
@@ -19,15 +23,21 @@ import com.gymproject.common.port.classmanagement.ScheduleCommandPort;
 import com.gymproject.common.port.classmanagement.ScheduleQueryPort;
 import com.gymproject.common.port.user.UserProfilePort;
 import com.gymproject.common.port.user.UserSessionPort;
+import com.gymproject.common.util.GymDateUtil;
 import com.gymproject.common.vo.Modifier;
+import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.gymproject.common.constant.GymLocation.gymLat;
@@ -41,6 +51,7 @@ public class BookingService {
     private static Logger log = LoggerFactory.getLogger(BookingService.class);
 
     private final BookingRepository bookingRepository;
+    private final BookingHistoryRepository historyRepository;
     private final BookingValidator bookingValidator; // 검증 전담
     private final UserSessionPort userSessionPort;
     private final ScheduleCommandPort scheduleCommandPort;
@@ -59,7 +70,7 @@ public class BookingService {
         // 2. 시간 변환
         OffsetDateTime startAt = request.calculateStartAt();
         OffsetDateTime endAt = request.calculateEndAt();
-        OffsetDateTime now = OffsetDateTime.now();
+        OffsetDateTime now = GymDateUtil.now();
 
         // 3. 시간 충돌 검증
         bookingValidator.validateScheduleConflict(trainerId, startAt, endAt);
@@ -129,7 +140,7 @@ public class BookingService {
         scheduleCommandPort.reserveCurriculum(recurrenceId);
 
         // 4. 해당 Schedule에 대응하는 booking을 전부 생성
-        OffsetDateTime now = OffsetDateTime.now();
+        OffsetDateTime now = GymDateUtil.now();
 
         List<ScheduleInfo> scheduleInfos
                 = scheduleQueryPort.getScheduleInfos(recurrenceId);
@@ -184,7 +195,7 @@ public class BookingService {
         String reason = getCancelReason(userAuthInfo);
 
         // [중요] 엔티티는 취소 처리를 완료한 후, 서비스에게 계산된 취소 유형(cancelType)을 반환합니다.
-        CancellationType cancelType = booking.cancel(modifier, OffsetDateTime.now(), scheduleInfo.startAt(), reason);
+        CancellationType cancelType = booking.cancel(modifier, GymDateUtil.now(), scheduleInfo.startAt(), reason);
 
         // 3. 좌석 복구
         scheduleCommandPort.cancelRoutineReservation(scheduleInfo.scheduleId());
@@ -275,7 +286,7 @@ public class BookingService {
 
         ///  5. 상태 변경(CONFIRM -> ATTENDANCE)
         Modifier modifier = createModifier(userAuthInfo.getUserId());
-        booking.attend(modifier, scheduleInfo.startAt(), OffsetDateTime.now(), distance);
+        booking.attend(modifier, scheduleInfo.startAt(), GymDateUtil.now(), distance);
 
         // 6. 삭제(Attendance 기록은 남기지 않음): 추후 사용자가 어느 좌표에서 출석했는지 남기고 싶으면 BookingHistory에 메타데이터로 남기면됨.[중요]
 
@@ -299,7 +310,7 @@ public class BookingService {
     public BookingResponse enterRoutineClass(Long scheduleId, UserAuthInfo userAuthInfo) {
         Long userId = userAuthInfo.getUserId();
         Modifier modifier = createModifier(userId, userAuthInfo.isTrainer());
-        OffsetDateTime now = OffsetDateTime.now();
+        OffsetDateTime now = GymDateUtil.now();
 
         // 1. 멤버십 회원인지 확인
         bookingValidator.validateMembership(userId);
@@ -355,7 +366,7 @@ public class BookingService {
 
         ScheduleInfo firstSchedule = scheduleQueryPort.getFirstScheduleInCurriculum(recurrenceId);
         OffsetDateTime criteriaTime = firstSchedule.startAt(); // 기준이 되는 시간( 첫 수업 시작)
-        OffsetDateTime now = OffsetDateTime.now();
+        OffsetDateTime now = GymDateUtil.now();
 
         // 첫번째 수업 기준으로 취소 정책을 계산
         bookings.get(0).cancelFirstSchedule(
@@ -442,6 +453,53 @@ public class BookingService {
 
         // 3. 저장
         bookingRepository.saveAll(bookings);
+    }
+
+    // history 조회용
+    public Page<BookingHistoryResponse> searchHistories(BookingHistorySearchCondition condition, Pageable pageable) {
+
+        // 1. Specification(검색 조건) 생성
+        Specification<BookingHistory> spec = (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            // A. 예약 ID 검색
+            if (condition.bookingId() != null) {
+                predicates.add(cb.equal(root.get("bookingId"), condition.bookingId()));
+            }
+
+            // B. 변경자(Modifier) 검색
+            if (condition.modifierId() != null) {
+                predicates.add(cb.equal(root.get("modifierId"), condition.modifierId()));
+            }
+
+            // C. 액션 (ActionType) 검색
+            if (condition.actionType() != null) {
+                predicates.add(cb.equal(root.get("actionType"), condition.actionType()));
+            }
+
+            // D. 날짜 범위 검색
+            // 사용자가 "2026-01-22"를 보내면 -> "2026-01-22 00:00:00 (호주)" 부터 검색
+            if (condition.startDate() != null) {
+                predicates.add(cb.greaterThanOrEqualTo(
+                        root.get("createdAt"),
+                        GymDateUtil.convertStartOfDay(condition.startDate())
+                ));
+            }
+
+            // 사용자가 "2026-01-22"를 보내면 -> "2026-01-22 23:59:59.999 (호주)" 까지 검색
+            if (condition.endDate() != null) {
+                predicates.add(cb.lessThanOrEqualTo(
+                        root.get("createdAt"),
+                        GymDateUtil.convertEndOfDay(condition.endDate())
+                ));
+            }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+
+        // 2. 조회 및 DTO 변환
+        return historyRepository.findAll(spec, pageable)
+                .map(BookingHistoryResponse::create);
     }
 }
 

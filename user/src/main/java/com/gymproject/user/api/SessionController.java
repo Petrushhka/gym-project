@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -40,7 +41,7 @@ public class SessionController {
     @PostMapping("/checkout")
     public ResponseEntity<CommonResDto<CheckoutResponse>> createSession(
             @RequestBody @Valid SessionPurchaseRequest request,
-            @AuthenticationPrincipal UserAuthInfo userAuthInfo){
+            @AuthenticationPrincipal UserAuthInfo userAuthInfo) {
 
         // 1. 서비스 호출 검증
         CheckoutResponse response = userSessionService.prepareSessionCheckout(
@@ -49,24 +50,33 @@ public class SessionController {
         );
 
         return ResponseEntity.ok(
-                CommonResDto.success(200,"결제 페이지 생성 성공", response)
+                CommonResDto.success(200, "결제 페이지 생성 성공", response)
         );
     }
 
+    @Operation(summary = "5. 세션 변경 이력 검색 및 조회", description = """
+                다양한 조건으로 세션 이력을 검색합니다.(모든 사용자가 하나의 api 사용)
+            
+                - 페이징: `page=0&size=20` 형태로 요청(기본값: 0페이지, 10개)
+                - 정렬: `sort=createdAt, desc` 최신순
+                - 필터: `status=ACTIVE, startDate=2026-01-01` 등 원하는 조건만 파라미터로 추가
+            """)
     @GetMapping("/history")
     public ResponseEntity<CommonResDto<Page<SessionHistoryResponse>>> getMembershipHistory(
+            // @ParameterObject: Swagger에서 쿼리 파라미터를 펼쳐서 보여줌
+            @ParameterObject
 
             // 1. 검색 조건(쿼리 파라미터)
             @ModelAttribute SessionHistorySearchCondition condition,
 
             // 2. 페이징 정보(page, size, sort 등)
-            @PageableDefault(size = 10, sort="createdAt", direction = Sort.Direction.DESC) Pageable pageable,
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
 
             @AuthenticationPrincipal UserAuthInfo userAuthInfo
 
-    ){
+    ) {
         // 회원들은 본인의 기록만 보게 해야함(덮어주는 작업)
-        if(!userAuthInfo.isOverTrainer()) {
+        if (!userAuthInfo.isOverTrainer()) {
             condition = new SessionHistorySearchCondition(
                     userAuthInfo.getUserId(),
                     condition.startDate(),
@@ -80,7 +90,7 @@ public class SessionController {
         Page<SessionHistoryResponse> response = userSessionService.searchSessionHistory(condition, pageable);
 
         return ResponseEntity.ok(
-                CommonResDto.success(200 , "이력 검색 성공", response)
+                CommonResDto.success(200, "이력 검색 성공", response)
         );
     }
 }

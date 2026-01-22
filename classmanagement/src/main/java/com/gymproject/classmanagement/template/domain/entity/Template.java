@@ -5,13 +5,12 @@ import com.gymproject.classmanagement.template.domain.type.ClassKind;
 import com.gymproject.classmanagement.template.domain.type.RecommendLevel;
 import com.gymproject.classmanagement.template.exception.TemplateErrorCode;
 import com.gymproject.classmanagement.template.exception.TemplateException;
+import com.gymproject.common.util.GymDateUtil;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.OffsetDateTime;
 
@@ -49,13 +48,25 @@ public class Template {
     @Column(name = "class_kind", nullable = false)
     private ClassKind classKind;
 
-    @CreationTimestamp
     @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
 
-    @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
+
+    // 호주시간으로 저장
+    @PrePersist
+    public void onPrePersist() {
+        OffsetDateTime now = GymDateUtil.now();
+        this.createdAt = now;
+        this.updatedAt = now;
+    }
+
+    // 호주시간으로 저장
+    @PreUpdate
+    public void onPreUpdate() {
+        this.updatedAt = GymDateUtil.now();
+    }
 
     @Builder(access = AccessLevel.PRIVATE)
     private Template(String title, String description,

@@ -9,6 +9,7 @@ import com.gymproject.booking.timeoff.infrastructure.persistence.TrainerTimeOffR
 import com.gymproject.common.dto.auth.UserAuthInfo;
 import com.gymproject.common.port.auth.IdentityQueryPort;
 import com.gymproject.common.port.classmanagement.ScheduleQueryPort;
+import com.gymproject.common.util.GymDateUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -35,7 +36,7 @@ public class TrainerTimeOffService {
         OffsetDateTime endAt = request.getEndDateTime();
 
         // 3. 시작시간 종료시간 확인
-        request.validateConflict(startAt, endAt, OffsetDateTime.now());
+        request.validateConflict(startAt, endAt, GymDateUtil.now());
 
         // 4. 본인 시간 중 중복으로 막아놓은 시간이 있는지 -> 이건 왜 Entity로 안가져가는지?? -> 외부 정합성에 맞는거라서 이건 넣을 필요없음.
         validateNoTimeOffOverlap(userAuthInfo.getUserId(),

@@ -27,7 +27,7 @@ public record SessionHistorySearchCondition(
         @Schema(description = "변경 유형 필터 (ISSUE, REFUND 등)", example = "ISSUE")
         SessionChangeType changeType,
 
-        @Schema(description = "멤버십 종류 필터 (MEMBERSHIP_3M 등)" , example = "MEMBERSHIP_3M")
+        @Schema(description = "세션 상품 종류별 필터 (추후 프론트에서 고정값으로 사용할 예정)" , example = "PT_10")
         SessionProductType planType
 ) {
 }

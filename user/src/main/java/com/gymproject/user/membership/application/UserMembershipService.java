@@ -5,6 +5,7 @@ import com.gymproject.common.dto.payment.ProductInfo;
 import com.gymproject.common.event.integration.ProductCreatedEvent;
 import com.gymproject.common.port.payment.PaymentPort;
 import com.gymproject.common.port.payment.ProductPort;
+import com.gymproject.common.util.GymDateUtil;
 import com.gymproject.common.util.JsonSerializer;
 import com.gymproject.common.vo.Modifier;
 import com.gymproject.user.membership.application.dto.CheckoutResponse;
@@ -87,7 +88,7 @@ public class UserMembershipService {
         UserMembership membership = userMembershipRepository.findById(membershipId)
                 .orElseThrow(() -> new UserMembershipException(UserMembershipErrorCode.NOT_FOUND));
 
-        OffsetDateTime now = OffsetDateTime.now();
+        OffsetDateTime now = GymDateUtil.now();
 
         // 멤버십이 시작 전이라면 전액환불
         if (now.isBefore(membership.getStartedAt())) {
@@ -126,7 +127,7 @@ public class UserMembershipService {
 
     // 추후 연장과 신규생성을 쪼개야할것!
     private UserMembership processPurchase(User user, MembershipPlanType planType, OffsetDateTime startDate, Modifier modifier) {
-        OffsetDateTime now = OffsetDateTime.now();
+        OffsetDateTime now = GymDateUtil.now();
 
         return userMembershipRepository.findLastesMembership(
                         user.getUserId(),
@@ -201,7 +202,7 @@ public class UserMembershipService {
     }
 
     private OffsetDateTime calculateStartDate(Long userId, MembershipPurchaseRequest request) {
-        OffsetDateTime now = OffsetDateTime.now();
+        OffsetDateTime now = GymDateUtil.now();
 
         //  "EXTEND"인 경우
         if (request.type().equalsIgnoreCase("EXTEND")) {

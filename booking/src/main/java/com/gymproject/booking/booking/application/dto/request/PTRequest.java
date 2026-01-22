@@ -32,7 +32,7 @@ public class PTRequest {
     @Schema(description = "이용권 타입 (FREE_TRIAL, PAID) 등)", example = "FREE_TRIAL")
     private TicketType ticketType;
 
-    @Schema(description = "수업 시간(분)", example = "50")
+    @Schema(description = "수업 시간(분)", example = "60")
     private int durationMinutes;
 
     public OffsetDateTime calculateStartAt(){

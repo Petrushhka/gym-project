@@ -1,5 +1,6 @@
 package com.gymproject.readmodel.application;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.gymproject.readmodel.domain.CalendarStatus;
 import com.gymproject.readmodel.domain.TrainerCalendar;
 import com.gymproject.readmodel.domain.type.CalendarSource;
@@ -26,9 +27,11 @@ public record TrainerCalendarResponse(
         CalendarStatus status, // 예약가능한 수업인지
 
         @Schema(description = "일정 시작 시간 (호주 브리즈번 기준 ISO-8601)", example = "2026-01-18T10:00:00+11:00")
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Australia/Brisbane")
         OffsetDateTime start, // 시작 시간
 
         @Schema(description = "일정 종료 시간 (호주 브리즈번 기준 ISO-8601)", example = "2026-01-18T11:00:00+11:00")
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Australia/Brisbane")
         OffsetDateTime end // 종료 시간
 ){
 

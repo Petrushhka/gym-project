@@ -2,6 +2,7 @@ package com.gymproject.user.infrastructure.adapter;
 
 import com.gymproject.common.policy.RefundContext;
 import com.gymproject.common.policy.RefundDecision;
+import com.gymproject.common.util.GymDateUtil;
 import com.gymproject.user.membership.domain.entity.UserMembership;
 import com.gymproject.user.membership.domain.policy.MembershipRefundPolicy;
 import com.gymproject.user.membership.exception.UserMembershipErrorCode;
@@ -32,7 +33,7 @@ public class MembershipRefundStrategy implements RefundStrategy {
 
         return membershipRefundPolicy.calculate(
                 membership,
-                OffsetDateTime.now(),
+                GymDateUtil.now(),
                 context.paidAmount()
         );
     }
