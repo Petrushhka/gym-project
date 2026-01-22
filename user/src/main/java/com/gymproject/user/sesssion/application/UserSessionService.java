@@ -15,18 +15,29 @@ import com.gymproject.user.profile.application.UserProfileService;
 import com.gymproject.user.profile.domain.entity.User;
 import com.gymproject.user.profile.domain.type.UserSessionStatus;
 import com.gymproject.user.sesssion.domain.entity.UserSession;
+import com.gymproject.user.sesssion.domain.entity.UserSessionHistory;
 import com.gymproject.user.sesssion.domain.type.SessionProductType;
 import com.gymproject.user.sesssion.domain.type.SessionType;
 import com.gymproject.user.sesssion.exception.UserSessionErrorCode;
 import com.gymproject.user.sesssion.exception.UserSessionsException;
+import com.gymproject.user.sesssion.infrastructure.persistence.UserSessionHistoryRepository;
 import com.gymproject.user.sesssion.infrastructure.persistence.UserSessionRepository;
-import jakarta.transaction.Transactional;
+import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalTime;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.gymproject.common.constant.GymTimePolicy.SERVICE_ZONE;
 
 @Service
 @Transactional
@@ -34,6 +45,7 @@ import java.time.OffsetDateTime;
 public class UserSessionService {
 
     private final UserSessionRepository userSessionRepository;
+    private final UserSessionHistoryRepository historyRepository;
     private final UserProfileService userProfileService;
     private final ProductPort productPort;
     private final PaymentPort paymentPort;
@@ -204,6 +216,49 @@ public class UserSessionService {
 
         return session.getSessionType().name();
     }
+
+    // History 조회용 메서드
+    @Transactional(readOnly = true)
+    public Page<SessionHistoryResponse> searchSessionHistory(SessionHistorySearchCondition condition, Pageable pageable) {
+        // 1. Specification 정의
+        Specification<UserSessionHistory> spec = (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            // 특정 유저 조회
+            if (condition.userId() != null) {
+                predicates.add(cb.equal(root.get("userId"), condition.userId()));
+            }
+
+            // 상태별 필터 (Enum)
+            if (condition.status() != null) {
+                predicates.add(cb.equal(root.get("status"), condition.status()));
+            }
+
+            // 플랜 타입별 필터 (Enum)
+            if (condition.planType() != null) {
+                predicates.add(cb.equal(root.get("sessionProductType"), condition.planType()));
+            }
+
+            // 날짜 범위 필터 (시작일 ~ 종료일)
+            if (condition.startDate() != null) {
+                predicates.add(cb.greaterThanOrEqualTo(root.get("createdAt"),
+                        condition.startDate().atStartOfDay(SERVICE_ZONE).toOffsetDateTime()));
+            }
+            if (condition.endDate() != null) {
+                predicates.add(cb.lessThanOrEqualTo(root.get("createdAt"),
+                        condition.endDate().atTime(LocalTime.MAX).atZone(SERVICE_ZONE).toOffsetDateTime()));
+            }
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+
+        // 2. 레포지토리의 findAll(spec, pageable) 호출
+        Page<UserSessionHistory> histories = historyRepository.findAll(spec, pageable);
+
+        // 3. DTO 변환 후 반환
+        return histories.map(SessionHistoryResponse::create);
+
+    }
+
 }
 
 /*

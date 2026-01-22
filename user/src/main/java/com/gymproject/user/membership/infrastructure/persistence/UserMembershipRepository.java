@@ -1,8 +1,8 @@
 package com.gymproject.user.membership.infrastructure.persistence;
 
-import com.gymproject.user.profile.domain.entity.User;
 import com.gymproject.user.membership.domain.entity.UserMembership;
 import com.gymproject.user.membership.domain.type.MembershipStatus;
+import com.gymproject.user.profile.domain.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -12,7 +12,7 @@ import java.util.Collection;
 import java.util.Optional;
 
 @Repository
-public interface UserMembershipRepository extends JpaRepository<UserMembership, Long> {
+public interface UserMembershipRepository extends JpaRepository<UserMembership, Long>{
     // 1. 특정 사용자의 특정 상태 멤버십 조회(예: ACTIVE인 것만 조회)
     Optional<UserMembership> findByUserAndStatus(User user, MembershipStatus status);
 

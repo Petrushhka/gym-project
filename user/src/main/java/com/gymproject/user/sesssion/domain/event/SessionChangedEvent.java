@@ -1,8 +1,10 @@
 package com.gymproject.user.sesssion.domain.event;
 
+import com.gymproject.common.vo.Modifier;
+import com.gymproject.user.profile.domain.type.UserSessionStatus;
 import com.gymproject.user.sesssion.domain.entity.UserSession;
 import com.gymproject.user.sesssion.domain.type.SessionChangeType;
-import com.gymproject.common.vo.Modifier;
+import com.gymproject.user.sesssion.domain.type.SessionProductType;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -15,6 +17,9 @@ public class SessionChangedEvent {
     private final SessionChangeType type; // 구매, 환불, 사용, 만료 등
     private final int amount; // 사용량
 
+    private final SessionProductType productType; // 상품 타입
+    private final UserSessionStatus sessionStatus;
+
     // 정보를 조립하는 빌더 클래스
     public static class Builder{
         private final UserSession userSession;
@@ -22,9 +27,15 @@ public class SessionChangedEvent {
         private SessionChangeType type;
         private int amount;
 
+        private SessionProductType productType;
+        private UserSessionStatus status;
+
         public Builder(UserSession userSession, Modifier modifier) {
             this.userSession = userSession;
             this.modifier = modifier;
+
+            this.productType = userSession.getSessionProductType();
+            this.status = userSession.getStatus();
         }
 
         public Builder action(SessionChangeType type, int amount){
@@ -44,6 +55,9 @@ public class SessionChangedEvent {
         this.modifier = builder.modifier;
         this.type = builder.type;
         this.amount = builder.amount;
+
+        this.productType = builder.productType;
+        this.sessionStatus = builder.status;
     }
 
     /**  --------------- 정적 팩토리 메서드 ---------------- **/

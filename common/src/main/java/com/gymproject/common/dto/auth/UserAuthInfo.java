@@ -28,6 +28,16 @@ public class UserAuthInfo {
         return true;
     }
 
+   public boolean isAdmin(){
+        if(role != Roles.ADMIN){ return false; }
+        return true;
+   }
+
+   public boolean isOverTrainer(){
+        if(role!=Roles.TRAINER && role != Roles.ADMIN){ return false; }
+            return true;
+   }
+
     public static UserAuthInfo system(){
         return new UserAuthInfo(-1L, "system", Roles.SYSTEM);
     }

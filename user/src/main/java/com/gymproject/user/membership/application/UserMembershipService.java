@@ -8,23 +8,35 @@ import com.gymproject.common.port.payment.ProductPort;
 import com.gymproject.common.util.JsonSerializer;
 import com.gymproject.common.vo.Modifier;
 import com.gymproject.user.membership.application.dto.CheckoutResponse;
+import com.gymproject.user.membership.application.dto.MembershipHistoryResponse;
+import com.gymproject.user.membership.application.dto.MembershipHistorySearchCondition;
 import com.gymproject.user.membership.application.dto.MembershipPurchaseRequest;
 import com.gymproject.user.membership.domain.entity.UserMembership;
+import com.gymproject.user.membership.domain.entity.UserMembershipHistory;
 import com.gymproject.user.membership.domain.type.MembershipPlanType;
 import com.gymproject.user.membership.domain.type.MembershipStatus;
 import com.gymproject.user.membership.exception.UserMembershipErrorCode;
 import com.gymproject.user.membership.exception.UserMembershipException;
+import com.gymproject.user.membership.infrastructure.persistence.UserMembershipHistoryRepository;
 import com.gymproject.user.membership.infrastructure.persistence.UserMembershipRepository;
 import com.gymproject.user.profile.application.UserProfileService;
 import com.gymproject.user.profile.domain.entity.User;
-import jakarta.transaction.Transactional;
+import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalTime;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.List;
+
+import static com.gymproject.common.constant.GymTimePolicy.SERVICE_ZONE;
 
 @Slf4j
 @Service
@@ -34,12 +46,14 @@ public class UserMembershipService {
 
     private final UserProfileService userProfileService;
     private final UserMembershipRepository userMembershipRepository;
-    private final JsonSerializer jsonSerializer;
+    private final UserMembershipHistoryRepository historyRepository;
+    private final PaymentPort paymentPort;
     private final ApplicationEventPublisher applicationEventPublisher;
+    private final JsonSerializer jsonSerializer;
+
 
     // === 멤버십 결제
     private final ProductPort productPort;
-    private final PaymentPort paymentPort;
 
 
     // 멤버십 구매 요청으로 멤버십을 연장 or 구매 처리를 진행함.
@@ -200,5 +214,47 @@ public class UserMembershipService {
 
         // 신규(NEW)인 경우 요청한날짜가 있으면 쓰고, 없으면 금일부터!
         return request.startDate() != null ? request.startDate() : now;
+    }
+
+    // History 조회용 메서드
+    @Transactional(readOnly = true)
+    public Page<MembershipHistoryResponse> searchMembershipHistory(MembershipHistorySearchCondition condition, Pageable pageable) {
+        // 1. Specification 정의
+        Specification<UserMembershipHistory> spect = (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            // 특정 유저 조회
+            if (condition.userId() != null) {
+                predicates.add(cb.equal(root.get("userId"), condition.userId()));
+            }
+
+            // 상태별 필터 (Enum)
+            if (condition.status() != null) {
+                predicates.add(cb.equal(root.get("status"), condition.status()));
+            }
+
+            // 플랜 타입별 필터 (Enum)
+            if (condition.planType() != null) {
+                predicates.add(cb.equal(root.get("membershipPlanType"), condition.planType()));
+            }
+
+            // 날짜 범위 필터 (시작일 ~ 종료일)
+            if (condition.startDate() != null) {
+                predicates.add(cb.greaterThanOrEqualTo(root.get("createdAt"),
+                        condition.startDate().atStartOfDay(SERVICE_ZONE).toOffsetDateTime()));
+            }
+            if (condition.endDate() != null) {
+                predicates.add(cb.lessThanOrEqualTo(root.get("createdAt"),
+                        condition.endDate().atTime(LocalTime.MAX).atZone(SERVICE_ZONE).toOffsetDateTime()));
+            }
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+
+        // 2. 레포지토리의 findAll(spec, pageable) 호출
+        Page<UserMembershipHistory> histories = historyRepository.findAll(spect, pageable);
+
+        // 3. DTO 변환 후 반환
+        return histories.map(MembershipHistoryResponse::create);
+
     }
 }

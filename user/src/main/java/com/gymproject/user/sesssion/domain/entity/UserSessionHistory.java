@@ -3,7 +3,9 @@ package com.gymproject.user.sesssion.domain.entity;
 import com.gymproject.common.security.Roles;
 import com.gymproject.common.vo.Modifier;
 import com.gymproject.user.common.domain.BaseEntity;
+import com.gymproject.user.profile.domain.type.UserSessionStatus;
 import com.gymproject.user.sesssion.domain.type.SessionChangeType;
+import com.gymproject.user.sesssion.domain.type.SessionProductType;
 import com.gymproject.user.sesssion.domain.type.SessionType;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -24,10 +26,9 @@ public class UserSessionHistory extends BaseEntity {
     @Column(name = "history_id")
     private Long historyId;
 
-    // 연관관계 매핑 (어떤 세션권의 기록인지)
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_session_id", nullable = false)
-    private UserSession userSession;
+
+    @Column(name = "user_session_id", nullable = false)
+    private Long userSessionId;
 
     // 조회 성능을 위해 User ID도 바로 저장
     /**
@@ -48,6 +49,13 @@ public class UserSessionHistory extends BaseEntity {
 
     @Column(name = "remaining_sessions", nullable = false)
     private int remainingSessions; // 변동 후 잔여량 (스냅샷)
+
+    @Column(name = "session_plan_type") // 유료 구매일시에만
+    private SessionProductType sessionProductType;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private UserSessionStatus status;
 
     @Column(name = "description")
     private String description; // 상세 내용 (예: 예약 ID)
@@ -70,19 +78,24 @@ public class UserSessionHistory extends BaseEntity {
     @Column(name = "expired_at_snapshot", nullable = false)
     private OffsetDateTime expiredAtSnapshot;
 
+
+
     @Builder
-    private UserSessionHistory(UserSession userSession, Long userId,
+    private UserSessionHistory(Long userSessionId, Long userId,
                               SessionChangeType changeType, int amount,
                               int remainingSessions, OffsetDateTime expiredAtSnapshot,
                                String description, SessionType sessionType,
+                               SessionProductType sessionProductType, UserSessionStatus status,
                                Modifier modifier) {
-        this.userSession = userSession;
+        this.userSessionId = userSessionId;
         this.userId = userId;
         this.changeType = changeType;
         this.amount = amount;
         this.remainingSessions = remainingSessions;
         this.description = description;
         this.sessionType = sessionType;
+        this.sessionProductType = sessionProductType;
+        this.status = status;
 
         // [추가]
         this.modifierId = modifier.id();
@@ -95,11 +108,13 @@ public class UserSessionHistory extends BaseEntity {
     public static UserSessionHistory recordUse(UserSession session, String detail,
                                                SessionType sessionType, Modifier modifier) {
         return UserSessionHistory.builder()
-                .userSession(session)
+                .userSessionId(session.getSessionId())
                 .userId(session.getUser().getUserId()) // UserSession에서 꺼내옴
                 .changeType(SessionChangeType.USE)
                 .amount(-1)
                 .remainingSessions(session.getRemainingSessions()) // 사용 후 상태
+                .sessionProductType(session.getSessionProductType())
+                .status(session.getStatus())
                 .description(detail)
                 .sessionType(sessionType)
                 .expiredAtSnapshot(session.getExpireAt())
@@ -110,12 +125,14 @@ public class UserSessionHistory extends BaseEntity {
     public static UserSessionHistory recordRestore(UserSession session, String detail,
                                                    SessionType sessionType, Modifier modifier) {
         return UserSessionHistory.builder()
-                .userSession(session)
+                .userSessionId(session.getSessionId())
                 .userId(session.getUser().getUserId())
                 .changeType(SessionChangeType.RESTORE)
                 .amount(1)
                 .remainingSessions(session.getRemainingSessions()) // 복구 후 상태
                 .description(detail)
+                .sessionProductType(session.getSessionProductType())
+                .status(session.getStatus())
                 .sessionType(sessionType)
                 .expiredAtSnapshot(session.getExpireAt())
                 .modifier(modifier)
@@ -128,13 +145,15 @@ public class UserSessionHistory extends BaseEntity {
                                                   Modifier modifier) {
 
         return UserSessionHistory.builder()
-                .userSession(session)
+                .userSessionId(session.getSessionId())
                 .userId(session.getUser().getUserId())
                 .changeType(SessionChangeType.REFUNDED)
                 .amount(amount) // 모든 세션권 횟수 차감
                 .remainingSessions(0)
                 .description(detail)
                 .sessionType(sessionType)
+                .sessionProductType(session.getSessionProductType())
+                .status(session.getStatus())
                 .expiredAtSnapshot(session.getExpireAt())
                 .modifier(modifier)
                 .build();
@@ -144,13 +163,15 @@ public class UserSessionHistory extends BaseEntity {
     public static UserSessionHistory recordPurchase(UserSession session, String detail,
                                                     SessionType sessionType, Modifier modifier) {
         return UserSessionHistory.builder()
-                .userSession(session)
+                .userSessionId(session.getSessionId())
                 .userId(session.getUser().getUserId())
                 .changeType(SessionChangeType.PURCHASE)
                 .amount(session.getTotalSessions())
                 .remainingSessions(session.getRemainingSessions())
                 .description(detail)
                 .sessionType(sessionType)
+                .sessionProductType(session.getSessionProductType())
+                .status(session.getStatus())
                 .expiredAtSnapshot(session.getExpireAt())
                 .modifier(modifier)
                 .build();
@@ -160,7 +181,7 @@ public class UserSessionHistory extends BaseEntity {
     public static UserSessionHistory recordIssue(UserSession session, String detail,
                                                     SessionType sessionType, Modifier modifier) {
         return UserSessionHistory.builder()
-                .userSession(session)
+                .userSessionId(session.getSessionId())
                 .userId(session.getUser().getUserId())
                 .changeType(SessionChangeType.ISSUE)
                 .amount(session.getTotalSessions())
@@ -168,6 +189,8 @@ public class UserSessionHistory extends BaseEntity {
                 .description(detail)
                 .sessionType(sessionType)
                 .expiredAtSnapshot(session.getExpireAt())
+                .sessionProductType(session.getSessionProductType())
+                .status(session.getStatus())
                 .modifier(modifier)
                 .build();
     }
@@ -176,7 +199,7 @@ public class UserSessionHistory extends BaseEntity {
     public static UserSessionHistory recordExpire(UserSession session, Modifier modifier,
                                                   int amount){
         return UserSessionHistory.builder()
-                .userSession(session)
+                .userSessionId(session.getSessionId())
                 .userId(session.getUser().getUserId())
                 .changeType(SessionChangeType.EXPIRED)
                 .amount(amount) // 남은 사용량 전부 소멸
@@ -184,6 +207,8 @@ public class UserSessionHistory extends BaseEntity {
                 .sessionType(session.getSessionType())
                 .expiredAtSnapshot(session.getExpireAt())
                 .description("기간 만료로 인한 자동 소멸")
+                .sessionProductType(session.getSessionProductType())
+                .status(session.getStatus())
                 .modifier(modifier)
                 .build();
     }
@@ -191,7 +216,7 @@ public class UserSessionHistory extends BaseEntity {
     // 세션권 사용정지
     public static UserSessionHistory recordDeactivate(UserSession session, Modifier modifier){
             return UserSessionHistory.builder()
-                    .userSession(session)
+                    .userSessionId(session.getSessionId())
                     .userId(session.getUser().getUserId())
                     .changeType(SessionChangeType.DEACTIVATED)
                     .amount(0) // 사용량 없음
@@ -199,6 +224,8 @@ public class UserSessionHistory extends BaseEntity {
                     .description("멤버십 종료로 인한 사용 정지")
                     .sessionType(session.getSessionType())
                     .expiredAtSnapshot(session.getExpireAt())
+                    .sessionProductType(session.getSessionProductType())
+                    .status(session.getStatus())
                     .modifier(modifier)
                     .build();
     }

@@ -58,6 +58,11 @@ public class UserSession extends AbstractAggregateRoot<UserSession> {
     @Column(name = "session_type", nullable = false)
     private SessionType sessionType;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "session_product_type", nullable = false)
+    private SessionProductType sessionProductType;
+
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
@@ -77,7 +82,8 @@ public class UserSession extends AbstractAggregateRoot<UserSession> {
                        OffsetDateTime startAt,
                        OffsetDateTime expireAt,
                        UserSessionStatus status,
-                       SessionType sessionType) {
+                       SessionType sessionType,
+                       SessionProductType sessionProductType) {
 
         this.user = user;
         this.totalSessions = totalSessions;
@@ -86,6 +92,7 @@ public class UserSession extends AbstractAggregateRoot<UserSession> {
         this.expireAt = expireAt;
         this.status = status != null ? status : UserSessionStatus.ACTIVE;
         this.sessionType = sessionType;
+        this.sessionProductType = sessionProductType;
     }
 
     // 1. 무료 세션 생성(비니지스 정책상 30일까지만 사용가능)
@@ -99,6 +106,7 @@ public class UserSession extends AbstractAggregateRoot<UserSession> {
                 .sessionType(SessionType.FREE_TRIAL) // 무료타입
                 .expireAt(SessionPolicy.calculateFreeTrialExpiredAt(startAt))// 30일 안으로 무료체험 가능
                 .status(UserSessionStatus.ACTIVE)
+                .sessionProductType(SessionProductType.FREE)
                 .build();
 
         session.registerEvent( // 초기 무료 세션티켓: 횟수 1번 지급
@@ -117,6 +125,7 @@ public class UserSession extends AbstractAggregateRoot<UserSession> {
         UserSession session = UserSession.builder()
                 .user(user)
                 .totalSessions(productType.getSessionCount())
+                .sessionProductType(productType)
                 .usedSessions(0)
                 .sessionType(SessionType.PAID) // 유료타입
                 .status(UserSessionStatus.ACTIVE)

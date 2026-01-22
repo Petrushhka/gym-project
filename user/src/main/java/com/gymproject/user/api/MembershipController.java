@@ -4,17 +4,20 @@ import com.gymproject.common.dto.auth.UserAuthInfo;
 import com.gymproject.common.dto.exception.CommonResDto;
 import com.gymproject.user.membership.application.UserMembershipService;
 import com.gymproject.user.membership.application.dto.CheckoutResponse;
+import com.gymproject.user.membership.application.dto.MembershipHistoryResponse;
+import com.gymproject.user.membership.application.dto.MembershipHistorySearchCondition;
 import com.gymproject.user.membership.application.dto.MembershipPurchaseRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "2. 결제", description = "상품 결제 관리")
 @RestController
@@ -49,4 +52,41 @@ public class MembershipController {
         );
     }
 
+    @Operation(summary = "2. 멤버십 변경 이력 검색 및 조회", description = """
+                다양한 조건으로 멤버십 이력을 검색합니다.(모든 사용자가 하나의 api 사용)
+                
+                - 페이징: `page=0&size=20` 형태로 요청(기본값: 0페이지, 10개)
+                - 정렬: `sort=createdAt, desc` 최신순
+                - 필터: `status=ACTIVE, startDate=2026-01-01` 등 원하는 조건만 파라미터로 추가
+            """)
+    @GetMapping("/history")
+    public ResponseEntity<CommonResDto<Page<MembershipHistoryResponse>>> getMembershipHistory(
+
+            // 1. 검색 조건(쿼리 파라미터)
+            @ModelAttribute MembershipHistorySearchCondition condition,
+
+            // 2. 페이징 정보(page, size, sort 등)
+            @PageableDefault(size = 10, sort="createdAt", direction = Sort.Direction.DESC) Pageable pageable,
+
+            @AuthenticationPrincipal UserAuthInfo userAuthInfo
+
+    ){
+        // 회원들은 본인의 기록만 보게 해야함(덮어주는 작업)
+        if(!userAuthInfo.isOverTrainer()) {
+            condition = new MembershipHistorySearchCondition(
+                    userAuthInfo.getUserId(),
+                    condition.startDate(),
+                    condition.endDate(),
+                    condition.status(),
+                    condition.changeType(),
+                    condition.planType()
+            );
+        }
+
+        Page<MembershipHistoryResponse> response = userMembershipService.searchMembershipHistory(condition, pageable);
+
+        return ResponseEntity.ok(
+                CommonResDto.success(200 , "이력 검색 성공", response)
+        );
+    }
 }

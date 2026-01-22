@@ -94,7 +94,7 @@ app:
     failure-redirect-uri: http://localhost:3000/login
 
   payment:
-    base-url: localhost
+    base-url: http://localhost:8080
 
 logging:
   level:

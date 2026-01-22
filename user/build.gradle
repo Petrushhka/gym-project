@@ -20,6 +20,7 @@ dependencies {
     implementation 'io.jsonwebtoken:jjwt-jackson:0.12.3'
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'// oauth 인증
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0' // @Operation
+
 }
 
 test {

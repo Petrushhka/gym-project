@@ -9,6 +9,7 @@ import java.util.Arrays;
 
 @Getter
 public enum SessionProductType {
+    FREE("FREE", 1, 30),
     PT_10("PT_10", 10, 90), // 10회
     PT_20("PT_20", 20, 120), // 20회
     PT_30("PT_30", 30, 180); // 30회

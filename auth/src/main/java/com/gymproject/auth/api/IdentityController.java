@@ -78,7 +78,7 @@ public class IdentityController {
 
 
     // 1. 일반 회원가입
-    @Operation( summary = "3-A. 일반 회원가입", description = "인증이 완료된 이메일 정보를 바탕으로 신규 회원 정보를 저장합니다.")
+    @Operation( summary = "3-A. 일반 회원가입", description = "인증이 완료된 이메일 정보를 바탕으로 신규 회원 정보를 저장합니다.(phase 2: 로그아웃 추가)")
     @PostMapping("/signup")
     public ResponseEntity<CommonResDto<Void>> signUp(@RequestBody @Valid SignUpRequest dto) {
         identityService.processSignUp(dto);
@@ -129,7 +129,7 @@ public class IdentityController {
     }
 
     // 4. 로그인한 사용자의 비밀번호 변경
-    @Operation(summary = "7. 비밀번호 변경(로그인 상태)", description = "현재 세션의 사용자가 본인의 현재 비밀번호, 새 비밀번호, 검증용 비밀번호 통하여 비밀번호를 변경하빈다.")
+    @Operation(summary = "7. 비밀번호 변경(로그인 상태)", description = "현재 세션의 사용자가 본인의 현재 비밀번호, 새 비밀번호, 검증용 비밀번호 통하여 비밀번호를 변경합니다.(phase 2: 로그아웃 추가)")
     @PatchMapping("/passwords")
     public ResponseEntity<CommonResDto<Void>> changePasswordInSession(
             @RequestBody @Valid ChangePasswordRequest request,
