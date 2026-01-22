@@ -182,6 +182,19 @@ public class AuthService {
                 .toUriString();
     }
 
+    // 5. 로그아웃
+    @Transactional
+    public void logout(String refreshToken) {
+        // 1. 토큰이 유효하지 않으면 예외 발생
+        tokenProvider.validateToken(refreshToken);
+
+        // 3. 토큰에서 userId 추출
+        Long userId = tokenProvider.extractIdentityId(refreshToken);
+
+        // 3. refresh 삭제
+        tokenStoragePort.deleteRefreshToken(userId);
+    }
+
     // 토큰 형식 검사(JWT 형식검사)
     private void verifyTokenStructure(String refreshToken) {
         if (!tokenProvider.validateRefreshToken(refreshToken)) {

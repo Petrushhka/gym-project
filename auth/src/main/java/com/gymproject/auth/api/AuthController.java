@@ -95,6 +95,37 @@ public class AuthController {
                 .body(CommonResDto.success(HttpStatus.OK.value(), "재발급 성공", response));
     }
 
+    @Operation(summary = "3. 로그아웃", description = """
+    서버의 RefreshToken을 삭제하고, 클라이언트의 쿠키를 만료시킵니다.
+    (프론트에서 AccessToken 삭제 필요)
+    """)
+    @PostMapping("/logout")
+    public ResponseEntity<CommonResDto<Void>> logout(
+            @Parameter(description = "삭제할 리프레시 토큰", hidden = true)
+            @CookieValue(value = "refreshToken", required = false) String refreshToken, // 쿠키가 없을 수도 있으니 required=false
+            @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String accessToken // (선택) 블랙리스트 처리시 필요
+    ) {
+
+        // 1. 서비스 로직 실행 (DB/Redis에서 리프레시 토큰 삭제)
+        if (refreshToken != null) {
+            authService.logout(refreshToken);
+        }
+
+        // 2. 쿠키 삭제용 "빈 쿠키" 생성 (Max-Age를 0으로 설정)
+        // [주의] path나 domain이 발급 때와 완전히 똑같아야 삭제됩니다!
+        ResponseCookie deleteCookie = ResponseCookie.from("refreshToken", "") // 값 비우기
+                .httpOnly(true)
+                .path("/api/v1/auth/refresh") // 아까 발급한 경로와 동일해야 함
+                .maxAge(0) // 수명을 0으로 설정 -> 즉시 삭제
+                .secure(true)
+                .sameSite("None")
+                .build();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, deleteCookie.toString()) // 쿠키 삭제 명령 헤더 포함
+                .body(CommonResDto.success(HttpStatus.OK.value(), "로그아웃 성공", null));
+    }
+
 
     // 쿠키 생성 헬퍼 메서드
     private static String createRefreshTokenCookie(String refreshToken, long ttlMillis) {
