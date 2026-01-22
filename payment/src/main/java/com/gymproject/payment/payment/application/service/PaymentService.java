@@ -4,26 +4,29 @@ import com.gymproject.common.dto.auth.UserAuthInfo;
 import com.gymproject.common.dto.payment.ProductContractV1;
 import com.gymproject.common.event.integration.RefundEvent;
 import com.gymproject.common.policy.RefundDecision;
+import com.gymproject.common.util.GymDateUtil;
 import com.gymproject.common.util.JsonSerializer;
 import com.gymproject.payment.application.dto.GatewayResponse;
 import com.gymproject.payment.application.port.PaymentGatewayPort;
-import com.gymproject.payment.payment.application.dto.InitiatePaymentCommand;
-import com.gymproject.payment.payment.application.dto.PaymentRequest;
-import com.gymproject.payment.payment.application.dto.RefundRequest;
-import com.gymproject.payment.payment.application.dto.RefundResponse;
+import com.gymproject.payment.payment.application.dto.*;
 import com.gymproject.payment.payment.application.service.processor.RefundProcessor;
 import com.gymproject.payment.payment.domain.entity.Payment;
 import com.gymproject.payment.payment.domain.type.PaymentStatus;
 import com.gymproject.payment.payment.exception.PaymentErrorCode;
 import com.gymproject.payment.payment.exception.PaymentException;
 import com.gymproject.payment.payment.infrastructure.persistence.PaymentRepository;
-import jakarta.transaction.Transactional;
+import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -216,6 +219,55 @@ public class PaymentService {
                 .orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
 
         return payment;
+    }
+
+
+    // 결제 내역 조회 메서드
+    @Transactional(readOnly = true)
+    public Page<PaymentResponse> searchPayments(PaymentSearchCondition condition, Pageable pageable) {
+
+        Specification<Payment> spec = (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            // 1. ID 검색
+            if (condition.paymentId() != null) {
+                predicates.add(cb.equal(root.get("paymentId"), condition.paymentId()));
+            }
+
+            // 2. 유저 ID 검색 (관리자 조회 or 본인 조회)
+            if (condition.userId() != null) {
+                predicates.add(cb.equal(root.get("userId"), condition.userId()));
+            }
+
+            // 3. 상태 검색
+            if (condition.status() != null) {
+                predicates.add(cb.equal(root.get("status"), condition.status()));
+            }
+
+            // 4. 상품 카테고리 검색
+            if (condition.productCategory() != null) {
+                predicates.add(cb.equal(root.get("snapshotProductCategory"), condition.productCategory()));
+            }
+
+            // 5. 날짜 범위 검색 (호주 시간 적용) ⭐
+            if (condition.startDate() != null) {
+                predicates.add(cb.greaterThanOrEqualTo(
+                        root.get("createdAt"),
+                        GymDateUtil.convertStartOfDay(condition.startDate())
+                ));
+            }
+            if (condition.endDate() != null) {
+                predicates.add(cb.lessThanOrEqualTo(
+                        root.get("createdAt"),
+                        GymDateUtil.convertEndOfDay(condition.endDate())
+                ));
+            }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+
+        return paymentRepository.findAll(spec, pageable)
+                .map(PaymentResponse::create);
     }
 }
 

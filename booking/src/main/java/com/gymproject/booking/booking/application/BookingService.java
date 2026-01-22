@@ -456,6 +456,7 @@ public class BookingService {
     }
 
     // history 조회용
+    @Transactional(readOnly = true)
     public Page<BookingHistoryResponse> searchHistories(BookingHistorySearchCondition condition, Pageable pageable) {
 
         // 1. Specification(검색 조건) 생성

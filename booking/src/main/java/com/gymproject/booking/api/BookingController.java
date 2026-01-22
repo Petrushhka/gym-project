@@ -139,8 +139,25 @@ public class BookingController {
             @ParameterObject @ModelAttribute BookingHistorySearchCondition condition,
 
             // 기본 정렬: 최신순 (내림차순)
-            @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+            @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
+
+            @AuthenticationPrincipal UserAuthInfo userAuthInfo
     ) {
+
+        // 회원들은 본인의 기록만 보게 해야함(덮어주는 작업)
+        if(!userAuthInfo.isOverTrainer()) {
+            condition = new BookingHistorySearchCondition(
+                    userAuthInfo.getUserId(),
+                    condition.modifierId(),
+                    condition.actionType(),
+                    condition.startDate(),
+                    condition.endDate(),
+                    condition.modifierRole(),
+                    condition.bookingType(),
+                    condition.status()
+            );
+        }
+
 
         Page<BookingHistoryResponse> response = bookingService.searchHistories(condition, pageable);
 
