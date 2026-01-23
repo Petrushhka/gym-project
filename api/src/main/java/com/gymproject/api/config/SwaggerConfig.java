@@ -64,20 +64,21 @@ public class SwaggerConfig {
                         .description("""
                                 <h3>호주 브리즈번 기반 개인 헬스장 예약 시스템 API 명세서</h3>
                                 <p>본 프로젝트는 JWT 기반 인증을 사용합니다.</p>
+                                <p>개발 편의를 위해 응답 및 설정은 현재 한국어로 설정되어 있습니다.</p>
                                 <br/>
                                  <strong>테스트용 트레이너 계정</strong><br/>
-                                - email:<code>test@naver.com</code></br>
-                                - PW: <code>Password123!</code><br/>
+                                - email:<code>trainer@naver.com</code></br>
+                                - PW: <code>Trainer0189!</code><br/>
                                 <br/>
-                                <strong>테스트용 회원 계정</strong><br/>
-                                - email:<code>test4@naver.com</code></br>
-                                - PW: <code>Password123!</code><br/>
+                                <strong>정회원 계정</strong><br/>
+                                - email:<code>member@naver.com</code></br>
+                                - PW: <code>Member0189!</code><br/>
                                 
                                 <br/>
                                 <strong>테스트 방법</strong><br/>
                                 1. <code>/api/v1/auth/login</code> 에서 위 계정으로 로그인<br/>
                                 2. 응답받은 <strong>AccessToken</strong> 복사<br/>
-                                3. 우측 상단 <strong>Authorize</strong> 버튼 클릭 후 <code>Bearer {Token}</code> 입력
+                                3. 우측 상단 <strong>Authorize</strong> 버튼 클릭 후 <code>Value {Token}</code> 입력
                                 """
                         ) // 상세 설명
                         .version("v.1.0.0")) // API 버전
